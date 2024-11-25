@@ -1,0 +1,22 @@
+[project]
+name = "fractal-monitoring"
+version = "0.0.1"
+dependencies = ["click", "psutil", "pyyaml"]
+requires-python = ">=3.10"
+authors = [
+  {name = "Alberto Pastorutti", email = "alberto.pastorutti@exact-lab.it"},
+  {name = "Tommaso Comparin", email = "tommaso.comparin@exact-lab.it"},
+]
+description = "A simple tool to monitor Fractal instances"
+readme = "README.md"
+license = {file = "LICENSE"}
+
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.scripts]
+fracmon = "fractal_monitoring.main:main"
