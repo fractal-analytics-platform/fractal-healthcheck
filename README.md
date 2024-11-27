@@ -1,4 +1,4 @@
-# fractal-monitoring
+# fractal-healthcheck
 Work-in-progress tool to monitor a Fractal instance
 
 
