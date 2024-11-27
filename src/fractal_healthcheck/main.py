@@ -8,7 +8,7 @@ import sys
 from datetime import datetime, timedelta
 import textwrap
 
-from fractal_monitoring import checks
+from fractal_healthcheck import checks
 
 logger = logging.getLogger(__name__)
 
