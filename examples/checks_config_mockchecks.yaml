@@ -15,7 +15,13 @@ checks:
       always_fail: true
 monitoring:
   status_file: "./status.yaml"
-  mail_to: []
+  mail_to: ["example@example.com", ]
   intervals_hours:
     not_triggering: 72
     when_triggering: 4
+  mail_settings:
+    smtp_server: ""
+    port: 0
+    sender: ""
+    password: ""
+    instance_name: ""

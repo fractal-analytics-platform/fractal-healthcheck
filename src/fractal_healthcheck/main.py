@@ -7,7 +7,9 @@ import os
 import sys
 from datetime import datetime, timedelta
 import textwrap
-
+import smtplib
+from email.message import EmailMessage
+from dataclasses import dataclass
 from fractal_healthcheck import checks
 
 logger = logging.getLogger(__name__)
@@ -31,6 +33,12 @@ def call_checks(yaml_file, log_level=None, output_file=None, send_mail=False):
     if status_file is None:
         raise ValueError("Settings: 'monitoring: status_file' is not nullable")
     mail_to = config["monitoring"].get('mail_to', [])
+    if len(mail_to) > 0:
+        mail_settings = MailSettings(
+            **config["monitoring"].get('mail_settings', {})
+        )
+    else:
+        mail_settings = None
     # reporting intervals (default and when a check is triggering)
     intervals_hours = {
          'not_triggering': timedelta(
@@ -71,13 +79,16 @@ def call_checks(yaml_file, log_level=None, output_file=None, send_mail=False):
     # nothing to report: return None in output_file, output_mails
     output_mails = None
     status = None
-    if send_mail and len(mail_to > 0):
+    # reason string, to be used in mail subject: pretty-printed state of send reason, any_triggering, any_failing
+    reason = ""
+    if send_mail and len(mail_to) > 0:
         if not os.path.isfile(status_file):
             logger.debug(
                 "last sent report (status_file='{}') not found, will initialize".format(status_file))
             # no status file -> init, always report
             status = LastMailStatus()
             output_mails = mail_to[:]
+            reason = "first report (triggering: {}, failing: {})".format(any_triggering, any_failing)
         else:
             # status file exists -> read latest and check if enough time has passed
             # if so, populate output_mails
@@ -94,16 +105,18 @@ def call_checks(yaml_file, log_level=None, output_file=None, send_mail=False):
                 if since_last > intervals_hours["when_triggering"]:
                     logger.debug("will send, reason: triggering and enough time elapsed")
                     output_mails = mail_to[:]
+                    reason = "triggering: {}, failing: {}".format(any_triggering, any_failing)
                 else:
                     logger.debug("will not send, reason: triggering, but not enough time elapsed")
             else:
                 if since_last > intervals_hours["not_triggering"]:
                     logger.debug("will send, reason: not triggering, but enough time elapsed")
                     output_mails = mail_to[:]
+                    reason = "all ok"
                 else:
                     logger.debug("will not send, reason: not triggering and not enough time elapsed")
 
-    return check_suite, output_file, output_mails, status_file, status
+    return check_suite, output_file, output_mails, mail_settings, status_file, status, reason
 
 
 class CheckSuite:
@@ -225,6 +238,7 @@ class LastMailStatus:
         Update the timestamp(s) in a status instance
         """
         self.last = self._update(timestamp=datetime.now())
+        return self
 
 
 def prepare_report(check_suite):
@@ -269,6 +283,15 @@ def prepare_report(check_suite):
     return full_report
 
 
+@dataclass
+class MailSettings():
+    smtp_server: str
+    sender: str
+    port: int
+    password: str
+    instance_name: str
+
+
 def report_to_file(report, filename, mode='a'):
     """
     Wraps: write what prepare_report returns to a file.
@@ -278,12 +301,34 @@ def report_to_file(report, filename, mode='a'):
         file.write(report)
 
 
-def report_to_mail(report, mail_list, mail_backend=None):
+def report_to_mail(report, reason, mail_list, mail_settings, mail_backend='smtplib'):
     """
     Wraps: send what prepare_report returns to a list of email addresses
     """
-    # TODO
-    raise NotImplementedError()
+    if mail_backend != 'smtplib':
+        raise NotImplementedError()
+
+    msg = EmailMessage()
+    msg.set_content(report)
+    msg['From'] = mail_settings.sender
+    msg['To'] = ",".join(mail_list)
+    msg['Subject'] = "fractal-healthchecks {}: {}".format(
+        mail_settings.instance_name, reason)
+
+    with smtplib.SMTP(mail_settings.smtp_server, mail_settings.port) as server:
+        server.ehlo()
+        server.starttls()
+        server.ehlo()
+        server.ehlo()
+        server.login(user=mail_settings.sender,
+                     password=mail_settings.password,
+                     initial_response_ok=True) 
+        server.ehlo()
+        server.sendmail(from_addr=mail_settings.sender,
+                        to_addrs=mail_list,
+                        msg=msg.as_string())
+        print('Email sent!')
+        server.close()
 
 
 @click.command()
@@ -295,13 +340,15 @@ def report_to_mail(report, mail_list, mail_backend=None):
 @click.option('-s', '--send-mail', 'send_mail', default=False, is_flag=True,
               help='Send mails (according to mail_to provided in yaml_file)')
 def main(yaml_file, log_level=None, output_file=None, send_mail=False):
-    (check_suite, output_file, output_mails,
-     status_file, status) = call_checks(yaml_file, log_level, output_file, send_mail)
+    # TODO: separate 'parse settings', then pass to call_checks
+    # to avoid parsing in call_checks and then just returning (some fields) here
+    (check_suite, output_file, output_mails, mail_settings,
+     status_file, status, reason) = call_checks(yaml_file, log_level, output_file, send_mail)
     report = prepare_report(check_suite)
     if output_file is not None:
         report_to_file(report=report, filename=output_file)
     if output_mails is not None:
-        report_to_mail(report=report, mail_list=output_mails)
+        report_to_mail(report=report, reason=reason, mail_list=output_mails, mail_settings=mail_settings)
         with open(status_file, 'w') as file:
             status.update().to_yaml(file)
 
