@@ -350,7 +350,7 @@ def report_to_mail(report, reason, mail_settings: MailSettings, mail_backend="sm
         server.ehlo()
         server.sendmail(
             from_addr=mail_settings.sender,
-            to_addrs=mail_list,
+            to_addrs=mail_settings.recipients,
             msg=msg.as_string(),
         )
         logger.info("Email sent!")
