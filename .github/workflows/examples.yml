@@ -1,0 +1,25 @@
+name: Examples
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+
+  examples:
+
+    steps:
+
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-python@v5
+        with:
+          python-version: 3.10
+
+      - run: pip install -e .
+
+      - run: fractal-health tests/checks_config_fail.yaml  -l DEBUG
+
+      - run: fractal-health tests/checks_config_success.yaml  -l DEBUG

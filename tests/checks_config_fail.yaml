@@ -1,0 +1,20 @@
+checks:
+  "URL example":
+    function: url_json
+    kwargs:
+      url: "http://ifconfig.io/ip"
+  "Count processes (via psutil)":
+    function: process_count
+
+monitoring:
+  status_file: "./status.yaml"
+  mail_to: []
+  intervals_hours:
+    not_triggering: 72
+    when_triggering: 4
+  mail_settings:
+    smtp_server: ""
+    port: 0
+    sender: ""
+    password: ""
+    instance_name: ""
