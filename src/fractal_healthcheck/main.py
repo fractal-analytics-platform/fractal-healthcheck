@@ -52,7 +52,7 @@ class LastMailStatus:
         """
         out_yaml: anything that yaml.safe_dump can return to (str, open file object, ...)
         """
-        yaml.safe_dump({"last": self.last})
+        yaml.safe_dump({"last": self.last}, out_yaml)
 
     def _update(self, timestamp=None):
         """
