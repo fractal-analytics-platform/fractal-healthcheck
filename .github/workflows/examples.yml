@@ -7,9 +7,10 @@ on:
     branches: ["main"]
 
 jobs:
-  runs-on: ubuntu-latest
+
 
   examples:
+    runs-on: ubuntu-latest
 
     steps:
 
