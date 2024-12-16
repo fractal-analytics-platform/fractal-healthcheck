@@ -1,0 +1,38 @@
+checks:
+  "URL example":
+    function: url_request
+    kwargs:
+      url: "http://ifconfig.io/ip"
+  "System load":
+    function: system_load
+    max_load: -1  # use cpu count
+  "Count open files":
+    function: lsof_count
+  "Count processes and threads (ps -AL)":
+    function: ps_count
+  "Count processes (ps -A)":
+    function: ps_count
+    kwargs:
+      include_threads: false
+  "Storage usage on one mountpoint":
+    function: df
+    kwargs:
+      mountpoint: "/"
+      timeout_seconds: 60
+  "Memory usage":
+    function: memory_usage
+  "Count processes (via psutil)":
+    function: process_count
+
+monitoring:
+  status_file: "./status.yaml"
+  mail_to: []
+  intervals_hours:
+    not_triggering: 72
+    when_triggering: 4
+  mail_settings:
+    smtp_server: ""
+    port: 0
+    sender: ""
+    password: ""
+    instance_name: ""
