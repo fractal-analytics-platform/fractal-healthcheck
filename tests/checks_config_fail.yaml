@@ -13,6 +13,6 @@ email-config:
   password: "fakepassword"
   recipients: ["recipient1@example.org"]
   instance_name: "MyInstance"
-  status_file: "./status-fail.yaml"
+  status_file: "./status.yaml"
   grace_time_not_triggering_hours: 0
   grace_time_triggering_hours: 0

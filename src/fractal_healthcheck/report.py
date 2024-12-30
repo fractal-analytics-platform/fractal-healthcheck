@@ -56,7 +56,7 @@ class LastMailStatus:
         loaded = yaml.safe_load(in_yaml)
         # in_yaml may be empty
         if loaded is not None:
-            return cls(last=loaded.get("last", None))
+            return cls(last_email_timestamp=loaded.get("last_email_timestamp", None))
         else:
             return cls()
 
@@ -64,7 +64,7 @@ class LastMailStatus:
         """
         out_yaml: anything that yaml.safe_dump can return to (str, open file object, ...)
         """
-        yaml.safe_dump({"last": self.last_email_timestamp}, out_yaml)
+        yaml.safe_dump({"last_email_timestamp": self.last_email_timestamp}, out_yaml)
 
     def update(self):
         """
@@ -143,8 +143,10 @@ def report_to_file(report, filename):
     """
     Append report to file.
     """
+    logger.info(f"[report_to_file] START - {filename}")
     with open(filename, "a") as f:
         f.write(report)
+    logger.info("[report_to_file] END")
 
 
 def report_to_email(
@@ -157,6 +159,8 @@ def report_to_email(
     Send report by email.
     """
 
+    logger.info("[report_to_email] START")
+
     # (1/3) Find out whether email should be sent
 
     status_file = mail_settings.status_file
@@ -168,20 +172,20 @@ def report_to_email(
             last_mail_info = LastMailStatus.from_yaml(f)
 
         if last_mail_info.last_email_timestamp is None:
-            logger.info("No report email ever sent")
-            since_last = datetime.now(tz=timezone.utc) - datetime.fromtimestamp(0)
+            logger.info("[report_to_email] No report email ever sent")
+            since_last = datetime.now(tz=timezone.utc) - datetime.fromtimestamp(0, tz=timezone.utc)
         else:
             since_last = (
                 datetime.now(tz=timezone.utc) - last_mail_info.last_email_timestamp
             )
             logger.info(
-                f"Last report email sent on {last_mail_info.last_email_timestamp} ({since_last} ago)"
+                f"[report_to_email] Last report email sent on {last_mail_info.last_email_timestamp} ({since_last} ago)"
             )
 
         if any_triggering or any_failing:
             if since_last > timedelta(hours=mail_settings.grace_time_triggering_hours):
                 logger.info(
-                    "Will send email, reason: triggering, and enough time elapsed"
+                    "[report_to_email] Will send email, reason: triggering, and enough time elapsed"
                 )
                 mail_reason = (
                     "WARNING ("
@@ -192,14 +196,14 @@ def report_to_email(
             else:
                 mail_reason = None
                 logger.info(
-                    "Will not send, reason: triggering, but not enough time elapsed"
+                    "[report_to_email] Will not send, reason: triggering, but not enough time elapsed"
                 )
         else:
             if since_last > timedelta(
                 hours=mail_settings.grace_time_not_triggering_hours
             ):
                 logger.info(
-                    "Will send email, reason: not triggering, but enough time elapsed"
+                    "[report_to_email] Will send email, reason: not triggering, but enough time elapsed"
                 )
                 mail_reason = (
                     "ALL OK ("
@@ -210,11 +214,13 @@ def report_to_email(
             else:
                 mail_reason = None
                 logger.info(
-                    "Will not send, reason: not triggering, and not enough time elapsed"
+                    "[report_to_email] Will not send, reason: not triggering, and not enough time elapsed"
                 )
 
     except Exception as e:
-        logger.info(f"Cannot read status_file='{status_file}', original error: {e}.")
+        logger.info(
+            f"[report_to_email] Cannot read status_file='{status_file}', original error: {e}."
+        )
         last_mail_info = LastMailStatus()
         mail_reason = (
             "First report ("
@@ -224,8 +230,10 @@ def report_to_email(
         )
 
     if mail_reason is None:
-        logger.info("Exit.")
+        logger.info("[report_to_email] Exit.")
         return
+
+    logger.info(f"[report_to_email] I will send an email, with {mail_reason=}")
 
     # (2/3) Prepare email
     msg = EmailMessage()
@@ -235,7 +243,9 @@ def report_to_email(
     msg.set_content(report)
 
     # (3/3) Send email and update timestamp
-    with smtplib.SMTP(mail_settings.smtp_server, mail_settings.smpt_server_port) as server:
+    with smtplib.SMTP(
+        host=mail_settings.smtp_server, port=mail_settings.smpt_server_port
+    ) as server:
         server.ehlo()
         if mail_settings.include_starttls:
             server.starttls()
@@ -245,14 +255,15 @@ def report_to_email(
             password=mail_settings.password,
             initial_response_ok=True,
         )
+        logger.info("[report_to_email] Successful login.")
         server.sendmail(
             from_addr=mail_settings.sender,
             to_addrs=mail_settings.recipients,
             msg=msg.as_string(),
         )
-        logger.info("Email sent!")
-
+        logger.info("[report_to_email] Email sent!")
         with open(status_file, "w") as f:
             last_mail_info.update()
             last_mail_info.to_yaml(f)
-        logger.info(f"{status_file} updated!")
+        logger.info(f"[report_to_email] {status_file} updated")
+    logger.info("[report_to_email] END")

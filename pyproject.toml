@@ -14,6 +14,8 @@ dependencies = [
     "pyyaml",
     "pydantic[email]  >= 2.10.0, < 2.11.0",
     "bumpver",
+    "pytest",
+    "requests",
 ]
 requires-python = ">=3.10"
 

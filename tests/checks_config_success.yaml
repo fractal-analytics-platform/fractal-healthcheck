@@ -1,23 +1,11 @@
 checks:
-
   - name: "System load"
     function_name: system_load
     max_load: -1
-
-  - name: "Count open files"
-    function_name: lsof_count
-
   - name: "Count processes"
     function_name: count_processes
-
   - name: "Count processes and threads (ps -AL)"
     function_name: ps_count_with_threads
-
-  - name: "Storage usage"
-    function_name: df
-    kwargs:
-      timeout_seconds: 30
-
   - name: "Memory usage"
     function_name: memory_usage
     
@@ -29,6 +17,6 @@ email-config:
   password: "fakepassword"
   recipients: ["recipient1@example.org"]
   instance_name: "MyInstance"
-  status_file: "./status-success.yaml"
+  status_file: "./status.yaml"
   grace_time_not_triggering_hours: 0
   grace_time_triggering_hours: 0

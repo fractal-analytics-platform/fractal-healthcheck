@@ -40,6 +40,8 @@ jobs:
 
       - run: pip install -e .
 
+      - run: pytest -vv --log-cli-level info -s
+
       - run: fractal-health tests/checks_config_fail.yaml -l INFO -o out1.txt -s
       - run: cat out1.txt
       - run: curl --silent http://localhost:8025/api/v1/messages | jq -r ".total"
