@@ -22,6 +22,10 @@ jobs:
         env:
           MP_SMTP_AUTH: "sender@example.org:fakepassword"
           MP_SMTP_AUTH_ALLOW_INSECURE: true
+        options: >-
+          --health-interval 2s
+          --health-timeout 2s
+          --health-retries 10
 
     steps:
 
