@@ -205,12 +205,7 @@ def report_to_email(
                 logger.info(
                     "[report_to_email] Will send email, reason: not triggering, but enough time elapsed"
                 )
-                mail_reason = (
-                    "ALL OK ("
-                    f"triggering: {any_triggering}, "
-                    f"failing: {any_failing}"
-                    ")"
-                )
+                mail_reason = "ALL OK"
             else:
                 mail_reason = None
                 logger.info(
