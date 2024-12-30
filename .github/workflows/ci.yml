@@ -47,5 +47,5 @@ jobs:
       - run: fractal-health tests/checks_config_success.yaml -l INFO -o out2.txt -s
       - run: cat out2.txt
       - run: curl --silent http://localhost:8025/api/v1/messages | jq -r ".total"
-      
-      - run: curl --silent http://localhost:8025/api/v1/messages
+
+      - run: curl --silent http://localhost:8025/api/v1/messages | jq .
