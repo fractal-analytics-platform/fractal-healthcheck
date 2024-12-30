@@ -22,12 +22,13 @@ checks:
     function_name: memory_usage
     
 email-config:
-  status_file: "./status.yaml"
-  recipients: ["example@example.com", ]
-  grace_time_not_triggering_hours: 72
-  grace_time_triggering_hours: 4
   smtp_server: "localhost"
-  smpt_server_port: 2025
-  sender: "example@example.org"
-  password: "1234"
+  smpt_server_port: 1025
+  include_starttls: false
+  sender: "sender@example.org"
+  password: "fakepassword"
+  recipients: [recipient1@example.org"]
   instance_name: "MyInstance"
+  status_file: "./status-success.yaml"
+  grace_time_not_triggering_hours: 0
+  grace_time_triggering_hours: 0

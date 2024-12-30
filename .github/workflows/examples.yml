@@ -12,6 +12,17 @@ jobs:
   examples:
     runs-on: ubuntu-latest
 
+    services:
+
+      mailpit:
+        image: axllent/mailpit
+        ports:
+          - 1025:1025
+          - 8025:8025
+        env:
+          MP_SMTP_AUTH: "sender@example.org:fakepassword"
+          MP_SMTP_AUTH_ALLOW_INSECURE: true
+
     steps:
 
       - uses: actions/checkout@v4
@@ -24,6 +35,6 @@ jobs:
 
       - run: pip install -e .
 
-      - run: fractal-health tests/checks_config_fail.yaml  -l DEBUG
+      - run: fractal-health tests/checks_config_fail.yaml -l DEBUG
 
-      - run: fractal-health tests/checks_config_success.yaml  -l DEBUG
+      - run: fractal-health tests/checks_config_success.yaml -l DEBUG

@@ -16,6 +16,7 @@ class MailSettings(BaseModel):
     smtp_server: str
     smpt_server_port: int
     sender: EmailStr
+    include_starttls: bool = True
     password: str
     recipients: list[EmailStr] = Field(min_length=1)
     status_file: str
@@ -236,15 +237,14 @@ def report_to_email(
     # (3/3) Send email and update timestamp
     with smtplib.SMTP(mail_settings.smtp_server, mail_settings.smpt_server_port) as server:
         server.ehlo()
-        server.starttls()
-        server.ehlo()
-        server.ehlo()
+        if mail_settings.include_starttls:
+            server.starttls()
+            server.ehlo()
         server.login(
             user=mail_settings.sender,
             password=mail_settings.password,
             initial_response_ok=True,
         )
-        server.ehlo()
         server.sendmail(
             from_addr=mail_settings.sender,
             to_addrs=mail_settings.recipients,
