@@ -6,6 +6,7 @@ from email.message import EmailMessage
 import textwrap
 from pydantic import BaseModel, Field, EmailStr
 from fractal_healthcheck import LOGGER_NAME
+import fractal_healthcheck
 
 from fractal_healthcheck.checks import CheckSuite
 
@@ -94,6 +95,7 @@ def prepare_report(check_suite: CheckSuite) -> str:
     summary = (
         f"# Summary\n\n"
         f"Report timestamp: {datetime.now(tz=timezone.utc)}\n"
+        f"Fractal-healthcheck version: {fractal_healthcheck.__VERSION__}\n"
         f"Total number of checks: {len(check_suite.checks)}\n"
         f"Number of checks setting off triggers: {len(triggering)}\n"
         f"Number of checks that did not complete: {len(failing)}\n"
