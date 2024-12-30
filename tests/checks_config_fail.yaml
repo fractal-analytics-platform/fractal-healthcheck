@@ -1,20 +1,17 @@
 checks:
-  "URL example":
-    function: url_json
-    kwargs:
-      url: "http://ifconfig.io/ip"
-  "Count processes (via psutil)":
-    function: process_count
 
+  - name: "URL JSON"
+    function_name: url_json
+    kwargs:
+      url: "http://localhost:1234/something/wrong"
+    
 email-config:
   status_file: "./status.yaml"
-  mail_to: []
-  intervals_hours:
-    not_triggering: 72
-    when_triggering: 4
-  mail_settings:
-    smtp_server: ""
-    port: 0
-    sender: ""
-    password: ""
-    instance_name: ""
+  recipients: ["example@example.com", ]
+  grace_time_not_triggering_hours: 72
+  grace_time_triggering_hours: 4
+  smtp_server: "localhost"
+  smpt_server_port: 2025
+  sender: "example@example.org"
+  password: "1234"
+  instance_name: "MyInstance"

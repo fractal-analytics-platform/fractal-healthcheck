@@ -105,7 +105,5 @@ class CheckSuite(BaseModel):
 def load_check_suite(config_file: str) -> CheckSuite:
     with open(config_file, "r") as f:
         config_dict = yaml.safe_load(f)
-    from devtools import debug
-    debug(config_dict)
     checks_suite = CheckSuite(**config_dict)
     return checks_suite
