@@ -11,7 +11,7 @@ email-config:
   include_starttls: false
   sender: "sender@example.org"
   password: "fakepassword"
-  recipients: [recipient1@example.org"]
+  recipients: ["recipient1@example.org"]
   instance_name: "MyInstance"
   status_file: "./status-fail.yaml"
   grace_time_not_triggering_hours: 0
