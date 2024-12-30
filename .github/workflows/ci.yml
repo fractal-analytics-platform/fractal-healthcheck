@@ -22,10 +22,11 @@ jobs:
         env:
           MP_SMTP_AUTH: "sender@example.org:fakepassword"
           MP_SMTP_AUTH_ALLOW_INSECURE: true
+        # Options to speed up the "Waiting for all services to be ready" step
         options: >-
-          --health-interval 2s
-          --health-timeout 2s
-          --health-retries 10
+          --health-interval 1s
+          --health-timeout 1s
+          --health-retries 20
 
     steps:
 
