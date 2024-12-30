@@ -119,7 +119,7 @@ def prepare_report(check_suite: CheckSuite) -> str:
         report += (
             f"Check: {name}\n"
             f"Status: {result.status}\n"
-            f"Logs:\n{textwrap.indent(result.full_log, '>> ')}\n"
+            f"Logs:\n{textwrap.indent(result.full_log, '> ')}\n"
             "----\n\n"
         )
     report = f"{report}End of report\n"
