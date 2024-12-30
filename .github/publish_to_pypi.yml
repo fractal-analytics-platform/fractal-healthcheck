@@ -1,3 +1,11 @@
+name: Publish to pypi
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
 jobs:
 
   pypi-publish:
