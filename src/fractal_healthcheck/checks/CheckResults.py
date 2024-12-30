@@ -18,7 +18,7 @@ class CheckResult(BaseModel):
             return "FAIL"
         else:
             return "ERROR"
-        
+
     @property
     def full_log(self) -> str:
         if self.exception is not None:
@@ -30,4 +30,4 @@ class CheckResult(BaseModel):
         else:
             log_str = self.log
 
-        return (log_str.strip("\n") + "\n")
+        return log_str.strip("\n") + "\n"

@@ -81,7 +81,7 @@ class CheckSuite(BaseModel):
             for _check in self.checks
             if _check.result.triggering
         }
-    
+
     def get_failing_results(self) -> dict[str, CheckResult]:
         """
         Return the failing results as a dict: {name:check.results}
@@ -101,6 +101,7 @@ class CheckSuite(BaseModel):
             for _check in self.checks
             if (_check.result.success and not _check.result.triggering)
         }
+
 
 def load_check_suite(config_file: str) -> CheckSuite:
     with open(config_file, "r") as f:

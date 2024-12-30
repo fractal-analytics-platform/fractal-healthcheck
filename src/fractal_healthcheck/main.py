@@ -82,7 +82,6 @@ def main(
             mail_settings=email_config,
         )
 
-
     return 0
 
 

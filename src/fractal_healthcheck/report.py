@@ -175,7 +175,9 @@ def report_to_email(
 
         if last_mail_info.last_email_timestamp is None:
             logger.info("[report_to_email] No report email ever sent")
-            since_last = datetime.now(tz=timezone.utc) - datetime.fromtimestamp(0, tz=timezone.utc)
+            since_last = datetime.now(tz=timezone.utc) - datetime.fromtimestamp(
+                0, tz=timezone.utc
+            )
         else:
             since_last = (
                 datetime.now(tz=timezone.utc) - last_mail_info.last_email_timestamp
