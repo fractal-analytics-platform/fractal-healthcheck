@@ -163,7 +163,7 @@ def memory_usage() -> CheckResult:
             if f != "percent":
                 mem_usage_human[f] = psutil._common.bytes2human(getattr(mem_usage, f))
             else:
-                mem_usage_human[f] = "{getattr(mem_usage, f)}%"
+                mem_usage_human[f] = f"{getattr(mem_usage, f)}%"
         return CheckResult(log=json.dumps(mem_usage_human, indent=2))
     except Exception as e:
         return failing_result(e)
