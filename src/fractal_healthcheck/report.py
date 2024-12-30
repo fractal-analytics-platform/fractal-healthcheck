@@ -124,7 +124,7 @@ def prepare_report(check_suite: CheckSuite) -> str:
         )
     report = f"{report}End of report\n"
 
-    separator = "-" * 80 + "\n"
+    separator = "-" * 80 + "\n\n"
     full_report = "".join(
         (
             summary,
