@@ -38,6 +38,6 @@ jobs:
         with:
           python-version: "3.10"
 
-      - run: pip install -e .
+      - run: pip install -e .[dev]
 
       - run: pytest -vv --log-cli-level info -s

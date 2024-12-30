@@ -8,16 +8,19 @@ authors = [
 description = "A simple tool to monitor Fractal instances"
 readme = "README.md"
 license = {file = "LICENSE"}
+requires-python = ">=3.10"
 dependencies = [
     "click",
     "psutil",
     "pyyaml",
     "pydantic[email]  >= 2.10.0, < 2.11.0",
+]
+[project.optional-dependencies]
+dev = [
     "bumpver",
     "pytest",
     "requests",
 ]
-requires-python = ">=3.10"
 
 [build-system]
 requires = ["setuptools >= 61.0"]
