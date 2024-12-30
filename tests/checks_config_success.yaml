@@ -1,38 +1,33 @@
 checks:
-  "URL example":
-    function: url_request
-    kwargs:
-      url: "http://ifconfig.io/ip"
-  "System load":
-    function: system_load
-    max_load: -1  # use cpu count
-  "Count open files":
-    function: lsof_count
-  "Count processes and threads (ps -AL)":
-    function: ps_count
-  "Count processes (ps -A)":
-    function: ps_count
-    kwargs:
-      include_threads: false
-  "Storage usage on one mountpoint":
-    function: df
-    kwargs:
-      mountpoint: "/"
-      timeout_seconds: 60
-  "Memory usage":
-    function: memory_usage
-  "Count processes (via psutil)":
-    function: process_count
 
-monitoring:
+  - name: "System load"
+    function_name: system_load
+    max_load: -1
+
+  - name: "Count open files"
+    function_name: lsof_count
+
+  - name: "Count processes"
+    function_name: count_processes
+
+  - name: "Count processes and threads (ps -AL)"
+    function_name: ps_count_with_threads
+
+  - name: "Storage usage"
+    function_name: df
+    kwargs:
+      timeout_seconds: 30
+
+  - name: "Memory usage"
+    function_name: memory_usage
+    
+email-config:
   status_file: "./status.yaml"
-  mail_to: []
-  intervals_hours:
-    not_triggering: 72
-    when_triggering: 4
-  mail_settings:
-    smtp_server: ""
-    port: 0
-    sender: ""
-    password: ""
-    instance_name: ""
+  recipients: ["example@example.com", ]
+  grace_time_not_triggering_hours: 72
+  grace_time_triggering_hours: 4
+  smtp_server: "localhost"
+  smpt_server_port: 2025
+  sender: "example@example.org"
+  password: "1234"
+  instance_name: "MyInstance"
