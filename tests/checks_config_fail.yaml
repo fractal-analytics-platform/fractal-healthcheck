@@ -6,7 +6,7 @@ checks:
   "Count processes (via psutil)":
     function: process_count
 
-monitoring:
+email-config:
   status_file: "./status.yaml"
   mail_to: []
   intervals_hours:

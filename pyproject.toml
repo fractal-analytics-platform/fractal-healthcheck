@@ -1,8 +1,6 @@
 [project]
 name = "fractal-healthcheck"
 version = "0.0.1"
-dependencies = ["click", "psutil", "pyyaml"]
-requires-python = ">=3.10"
 authors = [
   {name = "Alberto Pastorutti", email = "alberto.pastorutti@exact-lab.it"},
   {name = "Tommaso Comparin", email = "tommaso.comparin@exact-lab.it"},
@@ -10,11 +8,17 @@ authors = [
 description = "A simple tool to monitor Fractal instances"
 readme = "README.md"
 license = {file = "LICENSE"}
+dependencies = [
+    "click",
+    "psutil",
+    "pyyaml",
+    "pydantic[email]  >= 2.10.0, < 2.11.0",
+]
+requires-python = ">=3.10"
 
 [build-system]
 requires = ["setuptools >= 61.0"]
 build-backend = "setuptools.build_meta"
-
 
 [project.scripts]
 fractal-health = "fractal_healthcheck.main:main"
