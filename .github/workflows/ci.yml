@@ -35,6 +35,10 @@ jobs:
 
       - run: pip install -e .
 
-      - run: fractal-health tests/checks_config_fail.yaml -l DEBUG
+      - run: |
+          fractal-health tests/checks_config_fail.yaml -l DEBUG -o out1.txt
+          cat out1.txt
 
-      - run: fractal-health tests/checks_config_success.yaml -l DEBUG
+      - run: |
+          fractal-health tests/checks_config_success.yaml -l DEBUG -o out2.txt
+          cat out2.txt
