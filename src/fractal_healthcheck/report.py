@@ -237,7 +237,7 @@ def report_to_email(
     # (2/3) Prepare email
     msg = EmailMessage()
     msg["From"] = mail_settings.sender
-    msg["To"] = ",".join(mail_settings.recipients)
+    msg["To"] = ", ".join(mail_settings.recipients)
     msg["Subject"] = f"[Fractal, {mail_settings.instance_name}] {mail_reason}"
     msg.set_content(report)
 
