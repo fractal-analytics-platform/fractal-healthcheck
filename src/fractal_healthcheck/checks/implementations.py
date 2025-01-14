@@ -167,3 +167,22 @@ def memory_usage() -> CheckResult:
         return CheckResult(log=json.dumps(mem_usage_human, indent=2))
     except Exception as e:
         return failing_result(e)
+
+
+def check_mounts(mounts: list) -> CheckResult:
+    """
+    Check the status of the mounted folders
+    """
+    try:
+        paths = " ".join(mounts)
+        res = subprocess.run(
+            shlex.split(f"ls {paths}"),
+            check=True,
+            capture_output=True,
+            encoding="utf-8",
+        )
+        num_objs = len(res.stdout.strip("\n").split("\n"))
+        log = f"Number of files/folders (via ls {paths}): {num_objs}"
+        return CheckResult(log=log)
+    except Exception as e:
+        return failing_result(exception=e)
