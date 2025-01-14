@@ -18,6 +18,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "bumpver",
+    "devtools >= 0.12.2",
     "pytest >= 8.3.0, < 9.0.0",
     "requests >= 2.32.0, < 3.0.0",
 ]
