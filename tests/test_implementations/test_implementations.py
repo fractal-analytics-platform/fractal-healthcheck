@@ -93,3 +93,6 @@ def test_check_mounts(tmp_path):
     out = check_mounts(mounts=[tmp_path.as_posix()])
     assert out.success
     assert "1" in out.log
+
+    out = check_mounts(mounts="/invalid/path")
+    assert not out.success
