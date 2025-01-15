@@ -36,7 +36,12 @@ checks:
 
   - name: "Memory usage"
     function_name: memory_usage
-    
+
+  - name: "Check mounts"
+    function_name: check_mounts
+    kwargs:
+      mounts: ["/data/shares"]
+
 email-config:
   status_file: "./status.yaml"
   recipients: ["example@example.com", ]
