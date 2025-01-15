@@ -1,3 +1,7 @@
+# 0.1.3
+
+* Add filesystem check (\#14).
+
 # 0.1.2
 
 * Fix recipients-field issue when sending email to multiple recipients (\#12).
