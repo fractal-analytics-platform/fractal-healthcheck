@@ -1,6 +1,6 @@
 [project]
 name = "fractal-healthcheck"
-version = "0.1.2"
+version = "0.1.3"
 authors = [
   {name = "Alberto Pastorutti", email = "alberto.pastorutti@exact-lab.it"},
   {name = "Tommaso Comparin", email = "tommaso.comparin@exact-lab.it"},
@@ -31,7 +31,7 @@ build-backend = "setuptools.build_meta"
 fractal-health = "fractal_healthcheck.main:main"
 
 [tool.bumpver]
-current_version = "0.1.2"
+current_version = "0.1.3"
 version_pattern = "MAJOR.MINOR.PATCH[PYTAGNUM]"
 commit_message = "bump version {old_version} -> {new_version}"
 commit = true
