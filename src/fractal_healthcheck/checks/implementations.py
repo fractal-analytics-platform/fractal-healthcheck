@@ -38,29 +38,23 @@ def subprocess_run(command: str) -> CheckResult:
         return failing_result(exception=e)
 
 
-def _url_request(url: str) -> str:
-    """
-    Wraps call to urllib3.PoolManager.request
-    """
-    retries = Retry(connect=5)
-    http = PoolManager(retries=retries)
-    response = http.request("GET", url)
-    if response.status == 200:
-        urlopen_return = response.data.decode("utf-8")
-    else:
-        urlopen_return = json.dumps({"status": response.status}).encode()
-    return urlopen_return
-
-
 def url_json(url: str) -> CheckResult:
     """
     Log the json-parsed output of a request to 'url'
     Room for enhancement: implement trigger, e.g. matching regex in returned contents
     """
     try:
-        data = json.loads(_url_request(url=url))
-        log = json.dumps(data, sort_keys=True, indent=2)
-        return CheckResult(log=log)
+        retries = Retry(connect=5)
+        http = PoolManager(retries=retries)
+        response = http.request("GET", url)
+        if response.status == 200:
+            data = json.loads(response.data.decode("utf-8"))
+            log = json.dumps(data, sort_keys=True, indent=2)
+            return CheckResult(log=log)
+        else:
+            data = json.dumps({"status": response.status})
+            log = json.dumps(data, sort_keys=True, indent=2)
+            return CheckResult(log=log, triggering=True)
     except Exception as e:
         return failing_result(exception=e)
 
