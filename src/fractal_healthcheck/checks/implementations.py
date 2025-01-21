@@ -52,7 +52,9 @@ def url_json(url: str) -> CheckResult:
             log = json.dumps(data, sort_keys=True, indent=2)
             return CheckResult(log=log)
         else:
-            data = json.dumps({"status": response.status})
+            data = json.dumps(
+                {"status": response.status, "data": response.data.decode("utf-8")}
+            )
             log = json.dumps(data, sort_keys=True, indent=2)
             return CheckResult(log=log, triggering=True)
     except Exception as e:
