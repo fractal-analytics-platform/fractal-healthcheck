@@ -1,10 +1,11 @@
-import urllib.request
 import json
 import os
 import psutil
 import subprocess
 import shlex
 
+from urllib3.util import Retry
+from urllib3 import PoolManager
 from fractal_healthcheck.checks.CheckResults import CheckResult
 
 
@@ -39,9 +40,12 @@ def subprocess_run(command: str) -> CheckResult:
 
 def _url_request(url: str, encoding: str | None = None):
     """
-    Wraps call to urllib.request.Request
+    Wraps call to urllib3.PoolManager.request
     """
-    urlopen_return = urllib.request.urlopen(url).read()
+    retries = Retry(connect=5)
+    http = PoolManager(retries=retries)
+    response = http.request("GET", url)
+    urlopen_return = response.data.decode("utf-8")
     if encoding is not None:
         urlopen_return = urlopen_return.decode(encoding)
     return urlopen_return
