@@ -1,10 +1,11 @@
-import urllib.request
 import json
 import os
 import psutil
 import subprocess
 import shlex
 
+from urllib3.util import Retry
+from urllib3 import PoolManager
 from fractal_healthcheck.checks.CheckResults import CheckResult
 
 
@@ -37,25 +38,29 @@ def subprocess_run(command: str) -> CheckResult:
         return failing_result(exception=e)
 
 
-def _url_request(url: str, encoding: str | None = None):
-    """
-    Wraps call to urllib.request.Request
-    """
-    urlopen_return = urllib.request.urlopen(url).read()
-    if encoding is not None:
-        urlopen_return = urlopen_return.decode(encoding)
-    return urlopen_return
-
-
 def url_json(url: str) -> CheckResult:
     """
     Log the json-parsed output of a request to 'url'
     Room for enhancement: implement trigger, e.g. matching regex in returned contents
     """
     try:
-        data = json.loads(_url_request(url=url))
-        log = json.dumps(data, sort_keys=True, indent=2)
-        return CheckResult(log=log)
+        retries = Retry(connect=5)
+        http = PoolManager(retries=retries)
+        response = http.request("GET", url)
+        if response.status == 200:
+            data = json.loads(response.data.decode("utf-8"))
+            log = json.dumps(data, sort_keys=True, indent=2)
+            return CheckResult(log=log)
+        else:
+            log = json.dumps(
+                dict(
+                    status=response.status,
+                    data=response.data.decode("utf-8"),
+                ),
+                sort_keys=True,
+                indent=2,
+            )
+            return CheckResult(log=log, triggering=True)
     except Exception as e:
         return failing_result(exception=e)
 

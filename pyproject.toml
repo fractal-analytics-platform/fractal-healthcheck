@@ -14,12 +14,14 @@ dependencies = [
     "psutil >= 6.1.1, < 6.2.0",
     "pyyaml >= 6.0.0, <6.1.0",
     "pydantic[email] >= 2.10.0, < 2.11.0",
+    "urllib3 (>=2.3.0,<3.0.0)",
 ]
 [project.optional-dependencies]
 dev = [
     "bumpver",
     "devtools >= 0.12.2",
     "pytest >= 8.3.0, < 9.0.0",
+    "pre-commit >=2.19",
     "requests >= 2.32.0, < 3.0.0",
 ]
 

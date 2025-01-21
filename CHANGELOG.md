@@ -1,3 +1,7 @@
+# 0.1.4
+
+* Add retries on url_json(\#16)
+
 # 0.1.3
 
 * Add filesystem check (\#14).
