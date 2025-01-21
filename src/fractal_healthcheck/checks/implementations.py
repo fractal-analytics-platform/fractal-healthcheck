@@ -38,16 +38,17 @@ def subprocess_run(command: str) -> CheckResult:
         return failing_result(exception=e)
 
 
-def _url_request(url: str, encoding: str | None = None):
+def _url_request(url: str) -> str:
     """
     Wraps call to urllib3.PoolManager.request
     """
     retries = Retry(connect=5)
     http = PoolManager(retries=retries)
     response = http.request("GET", url)
-    urlopen_return = response.data.decode("utf-8")
-    if encoding is not None:
-        urlopen_return = urlopen_return.decode(encoding)
+    if response.status == 200:
+        urlopen_return = response.data.decode("utf-8")
+    else:
+        urlopen_return = json.dumps({"status": response.status}).encode()
     return urlopen_return
 
 

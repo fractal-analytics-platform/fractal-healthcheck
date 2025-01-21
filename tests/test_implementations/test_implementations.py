@@ -1,4 +1,3 @@
-import json
 import subprocess
 from fractal_healthcheck.checks.implementations import (
     subprocess_run,
@@ -20,15 +19,16 @@ def test_subprocess_run():
 
 
 def test_url_json(monkeypatch):
-    def mock_urlopen(url):
+    def mock_urlopen(self, method, url):
         class MockResponse:
-            def read(self):
-                return json.dumps({"test": "value"}).encode()
+            status = 200
+            data: bytes = b'{"test":"value"}'
 
         return MockResponse()
 
-    monkeypatch.setattr("urllib.request.urlopen", mock_urlopen)
-    result = url_json("http://example.com")
+    monkeypatch.setattr("urllib3.PoolManager.request", mock_urlopen)
+    result = url_json("http://example.com/")
+
     assert result.success
     assert "test" in result.log
     assert "value" in result.log
