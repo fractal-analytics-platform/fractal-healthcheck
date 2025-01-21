@@ -19,19 +19,33 @@ def test_subprocess_run():
 
 
 def test_url_json(monkeypatch):
-    def mock_urlopen(self, method, url):
+    def mock_request_200(self, method, url):
         class MockResponse:
             status = 200
-            data: bytes = b'{"test":"value"}'
+            data: bytes = b'{"test": "value"}'
 
         return MockResponse()
 
-    monkeypatch.setattr("urllib3.PoolManager.request", mock_urlopen)
-    result = url_json("http://example.com/")
+    def mock_request_404(self, method, url):
+        class MockResponse:
+            status = 404
+            data: bytes = b'{"error": "message"}'
 
+        return MockResponse()
+
+    monkeypatch.setattr("urllib3.PoolManager.request", mock_request_200)
+    result = url_json("http://example.com/")
     assert result.success
     assert "test" in result.log
     assert "value" in result.log
+
+    monkeypatch.setattr("urllib3.PoolManager.request", mock_request_404)
+    result = url_json("http://example.com/")
+    assert result.success
+    assert result.triggering
+    assert "404" in result.log
+    assert "error" in result.log
+    assert "message" in result.log
 
 
 def test_system_load():
