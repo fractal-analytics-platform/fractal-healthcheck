@@ -1,6 +1,6 @@
 # 0.1.4
 
-* Add retries on url_open(\#16)
+* Add retries on url_json(\#16)
 
 # 0.1.3
 
