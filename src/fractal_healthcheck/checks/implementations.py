@@ -174,7 +174,7 @@ def memory_usage() -> CheckResult:
         return failing_result(e)
 
 
-def check_mounts(mounts: list) -> CheckResult:
+def check_mounts(mounts: list[str]) -> CheckResult:
     """
     Check the status of the mounted folders
     """
@@ -188,6 +188,34 @@ def check_mounts(mounts: list) -> CheckResult:
         )
         num_objs = len(res.stdout.strip("\n").split("\n"))
         log = f"Number of files/folders (via ls {paths}): {num_objs}"
+        return CheckResult(log=log)
+    except Exception as e:
+        return failing_result(exception=e)
+
+
+def service_logs(
+    service: str, time_interval: str, target_words: list[str]
+) -> CheckResult:
+    """
+    Grep for target_words in service logs
+    """
+    parsed_target_words = "|".join(target_words)
+    shlex_target = shlex.quote(parsed_target_words)
+    from devtools import debug
+
+    debug(shlex.quote(parsed_target_words))
+    try:
+        res = subprocess.run(
+            shlex.split(
+                f'journalctl -u {service} --since "{time_interval}" | '
+                f"grep -E {shlex_target}"
+            ),
+            check=True,
+            capture_output=True,
+            encoding="utf-8",
+        )
+        critical_lines = res.stdout.strip("\n").split("\n")
+        log = f"Critical messages: {critical_lines}"
         return CheckResult(log=log)
     except Exception as e:
         return failing_result(exception=e)

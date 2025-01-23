@@ -9,6 +9,7 @@ from fractal_healthcheck.checks.implementations import (
     ps_count_with_threads,
     df,
     memory_usage,
+    service_logs,
 )
 
 
@@ -110,3 +111,15 @@ def test_check_mounts(tmp_path):
 
     out = check_mounts(mounts="/invalid/path")
     assert not out.success
+
+
+def test_service_logs():
+    out = service_logs(
+        service="dbus.service",
+        time_interval="4 hours ago",
+        target_words=["dbus", "daemon"],
+    )
+    from devtools import debug
+
+    debug(out)
+    debug(out.log)
