@@ -200,21 +200,21 @@ def service_logs(
     Grep for target_words in service logs
     """
     parsed_target_words = "|".join(target_words)
-    shlex_target = shlex.quote(parsed_target_words)
-    from devtools import debug
-
-    debug(shlex.quote(parsed_target_words))
     try:
-        res = subprocess.run(
-            shlex.split(
-                f'journalctl -u {service} --since "{time_interval}" | '
-                f"grep -E {shlex_target}"
-            ),
+        res1 = subprocess.run(
+            shlex.split(f'journalctl -u {service} --since "{time_interval}"'),
             check=True,
             capture_output=True,
             encoding="utf-8",
         )
-        critical_lines = res.stdout.strip("\n").split("\n")
+        res2 = subprocess.run(
+            shlex.split(f'grep -E "{parsed_target_words}"'),
+            input=res1.stdout,
+            check=True,
+            capture_output=True,
+            encoding="utf-8",
+        )
+        critical_lines = res2.stdout.strip("\n").split("\n")
         log = f"Critical messages: {critical_lines}"
         return CheckResult(log=log)
     except Exception as e:

@@ -119,7 +119,4 @@ def test_service_logs():
         time_interval="4 hours ago",
         target_words=["dbus", "daemon"],
     )
-    from devtools import debug
-
-    debug(out)
-    debug(out.log)
+    assert "dbus-daemon" in out.log
