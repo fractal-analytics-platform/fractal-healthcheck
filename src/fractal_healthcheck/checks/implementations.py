@@ -219,14 +219,16 @@ def service_logs(
             return CheckResult(
                 log=(
                     "No matching log lines found for "
-                    f"{target_words=}."
+                    f"{target_words=}.",
+                    triggering=False,
                     )
             )
-        log = (
-            f"{target_words=}.\n"
-            f"Matching log lines:\n{critical_lines}"
-        )
-        return CheckResult(log=log, triggering=True)
+        else:
+            log = (
+                f"{target_words=}.\n"
+                f"Matching log lines:\n{critical_lines}"
+            )
+            return CheckResult(log=log, triggering=True)
     except Exception as e:
         return failing_result(exception=e)
 
