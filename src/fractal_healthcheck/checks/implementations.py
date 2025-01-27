@@ -215,7 +215,17 @@ def service_logs(
             encoding="utf-8",
         )
         critical_lines = res2.stdout.strip("\n").split("\n")
-        log = f"Critical messages: {critical_lines}"
+        if len(critical_lines) == 0:
+            return CheckResult(
+                log=(
+                    "No matching log lines found for "
+                    f"{target_words=}."
+                    )
+            )
+        log = (
+            f"{target_words=}.\n"
+            f"Matching log lines:\n{critical_lines}"
+        )
         return CheckResult(log=log, triggering=True)
     except Exception as e:
         return failing_result(exception=e)
