@@ -174,7 +174,7 @@ def memory_usage() -> CheckResult:
         return failing_result(e)
 
 
-def check_mounts(mounts: list) -> CheckResult:
+def check_mounts(mounts: list[str]) -> CheckResult:
     """
     Check the status of the mounted folders
     """
@@ -189,5 +189,65 @@ def check_mounts(mounts: list) -> CheckResult:
         num_objs = len(res.stdout.strip("\n").split("\n"))
         log = f"Number of files/folders (via ls {paths}): {num_objs}"
         return CheckResult(log=log)
+    except Exception as e:
+        return failing_result(exception=e)
+
+
+def service_logs(
+    service: str, time_interval: str, target_words: list[str]
+) -> CheckResult:
+    """
+    Grep for target_words in service logs
+    """
+    parsed_target_words = "|".join(target_words)
+    try:
+        res1 = subprocess.run(
+            shlex.split(f'journalctl -u {service} --since "{time_interval}"'),
+            check=True,
+            capture_output=True,
+            encoding="utf-8",
+        )
+        res2 = subprocess.run(
+            shlex.split(f'grep -E "{parsed_target_words}"'),
+            input=res1.stdout,
+            check=True,
+            capture_output=True,
+            encoding="utf-8",
+        )
+        critical_lines = res2.stdout.strip("\n").split("\n")
+        if len(critical_lines) == 0:
+            return CheckResult(
+                log=f"No matching log lines found for {target_words=}.",
+                triggering=False,
+            )
+        else:
+            log = f"{target_words=}.\nMatching log lines:\n{critical_lines}"
+            return CheckResult(log=log, triggering=True)
+    except Exception as e:
+        return failing_result(exception=e)
+
+
+def file_logs(filename: str, target_words: list[str]) -> CheckResult:
+    """
+    Grep for target_words in a log file
+    """
+    parsed_target_words = "|".join(target_words)
+    try:
+        res = subprocess.run(
+            shlex.split(f'grep -E "{parsed_target_words}" {filename}'),
+            check=True,
+            capture_output=True,
+            encoding="utf-8",
+        )
+        critical_lines = res.stdout.strip("\n").split("\n")
+        if len(critical_lines) == 0:
+            return CheckResult(
+                log=f"No matching log lines found for {target_words=}.",
+                triggering=False,
+            )
+
+        else:
+            log = f"{target_words=}.\nMatching log lines:\n{critical_lines}"
+            return CheckResult(log=log, triggering=True)
     except Exception as e:
         return failing_result(exception=e)
