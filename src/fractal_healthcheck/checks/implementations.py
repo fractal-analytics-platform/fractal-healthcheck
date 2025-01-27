@@ -216,6 +216,25 @@ def service_logs(
         )
         critical_lines = res2.stdout.strip("\n").split("\n")
         log = f"Critical messages: {critical_lines}"
-        return CheckResult(log=log)
+        return CheckResult(log=log, triggering=True)
+    except Exception as e:
+        return failing_result(exception=e)
+
+
+def file_logs(filename: str, target_words: list[str]) -> CheckResult:
+    """
+    Grep for target_words in a log file
+    """
+    parsed_target_words = "|".join(target_words)
+    try:
+        res = subprocess.run(
+            shlex.split(f'grep "{parsed_target_words}" {filename}'),
+            check=True,
+            capture_output=True,
+            encoding="utf-8",
+        )
+        critical_lines = res.stdout.strip("\n").split("\n")
+        log = f"Critical messages: {critical_lines}"
+        return CheckResult(log=log, triggering=True)
     except Exception as e:
         return failing_result(exception=e)
