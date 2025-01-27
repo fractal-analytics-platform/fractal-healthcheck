@@ -1,6 +1,10 @@
+# 0.1.5
+
+* Add `service_logs` and `file_logs` (\#18).
+
 # 0.1.4
 
-* Add retries on url_json(\#16)
+* Add retries on `url_json`(\#16)
 
 # 0.1.3
 
