@@ -228,7 +228,7 @@ def file_logs(filename: str, target_words: list[str]) -> CheckResult:
     parsed_target_words = "|".join(target_words)
     try:
         res = subprocess.run(
-            shlex.split(f'grep "{parsed_target_words}" {filename}'),
+            shlex.split(f'grep -E "{parsed_target_words}" {filename}'),
             check=True,
             capture_output=True,
             encoding="utf-8",
