@@ -1,3 +1,7 @@
+# 0.1.6
+
+* Fix `service_logs` and `file_logs` (\#19).
+
 # 0.1.5
 
 * Add `service_logs` and `file_logs` (\#18).
