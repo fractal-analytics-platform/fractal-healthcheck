@@ -217,17 +217,12 @@ def service_logs(
         critical_lines = res2.stdout.strip("\n").split("\n")
         if len(critical_lines) == 0:
             return CheckResult(
-                log=(
-                    "No matching log lines found for "
-                    f"{target_words=}.",
-                    triggering=False,
-                    )
+                log=(f"No matching log lines found for {target_words=}."),
+                triggering=False,
             )
+
         else:
-            log = (
-                f"{target_words=}.\n"
-                f"Matching log lines:\n{critical_lines}"
-            )
+            log = f"{target_words=}.\nMatching log lines:\n{critical_lines}"
             return CheckResult(log=log, triggering=True)
     except Exception as e:
         return failing_result(exception=e)
@@ -246,7 +241,14 @@ def file_logs(filename: str, target_words: list[str]) -> CheckResult:
             encoding="utf-8",
         )
         critical_lines = res.stdout.strip("\n").split("\n")
-        log = f"Critical messages: {critical_lines}"
-        return CheckResult(log=log, triggering=True)
+        if len(critical_lines) == 0:
+            return CheckResult(
+                log=(f"No matching log lines found for {target_words=}."),
+                triggering=False,
+            )
+
+        else:
+            log = f"{target_words=}.\nMatching log lines:\n{critical_lines}"
+            return CheckResult(log=log, triggering=True)
     except Exception as e:
         return failing_result(exception=e)
