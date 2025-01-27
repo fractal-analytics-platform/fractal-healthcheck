@@ -2,6 +2,7 @@ import json
 import os
 import psutil
 import subprocess
+import logging
 import shlex
 
 from urllib3.util import Retry
@@ -201,27 +202,33 @@ def service_logs(
     """
     parsed_target_words = "|".join(target_words)
     try:
+        cmd = f'journalctl -q -u {service} --since "{time_interval}"'
+        logging.info(f"{cmd=}")
+
         res1 = subprocess.run(
-            shlex.split(f'journalctl -u {service} --since "{time_interval}"'),
-            check=True,
+            shlex.split(cmd),
             capture_output=True,
             encoding="utf-8",
         )
+        logging.info(f"journalctl returncode: {res1.returncode}")
+
+        cmd = f'grep -E "{parsed_target_words}"'
+        logging.info(f"{cmd=}")
         res2 = subprocess.run(
-            shlex.split(f'grep -E "{parsed_target_words}"'),
+            shlex.split(cmd),
             input=res1.stdout,
-            check=True,
             capture_output=True,
             encoding="utf-8",
         )
         critical_lines = res2.stdout.strip("\n").split("\n")
-        if len(critical_lines) == 0:
+        if res2.returncode == 1:
             return CheckResult(
-                log=f"No matching log lines found for {target_words=}.",
+                log=f"Returncode={res2.returncode} for {cmd=}.",
                 triggering=False,
             )
         else:
-            log = f"{target_words=}.\nMatching log lines:\n{critical_lines}"
+            critical_lines_joined = "\n".join(critical_lines)
+            log = f"{target_words=}.\nMatching log lines:\n{critical_lines_joined}"
             return CheckResult(log=log, triggering=True)
     except Exception as e:
         return failing_result(exception=e)
@@ -233,21 +240,22 @@ def file_logs(filename: str, target_words: list[str]) -> CheckResult:
     """
     parsed_target_words = "|".join(target_words)
     try:
+        cmd = f'grep -E "{parsed_target_words}" {filename}'
         res = subprocess.run(
-            shlex.split(f'grep -E "{parsed_target_words}" {filename}'),
-            check=True,
+            shlex.split(cmd),
             capture_output=True,
             encoding="utf-8",
         )
+        logging.info(f"grep returncode: {res.returncode}")
         critical_lines = res.stdout.strip("\n").split("\n")
-        if len(critical_lines) == 0:
+        if res.returncode == 1:
             return CheckResult(
-                log=f"No matching log lines found for {target_words=}.",
+                log=f"Returncode={res.returncode} for {cmd=}.",
                 triggering=False,
             )
-
         else:
-            log = f"{target_words=}.\nMatching log lines:\n{critical_lines}"
+            critical_lines_joined = "\n".join(critical_lines)
+            log = f"{target_words=}.\nMatching log lines:\n{critical_lines_joined}"
             return CheckResult(log=log, triggering=True)
     except Exception as e:
         return failing_result(exception=e)
