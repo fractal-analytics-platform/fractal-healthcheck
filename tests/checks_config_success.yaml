@@ -13,6 +13,7 @@ email-config:
   smtp_server: "localhost"
   smpt_server_port: 1025
   include_starttls: false
+  include_login: true
   sender: "sender@example.org"
   password: "fakepassword"
   recipients: ["recipient1@example.org"]
