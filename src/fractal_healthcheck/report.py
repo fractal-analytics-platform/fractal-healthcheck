@@ -18,6 +18,7 @@ class MailSettings(BaseModel):
     smpt_server_port: int
     sender: EmailStr
     include_starttls: bool = True
+    include_login: bool = True
     password: str
     recipients: list[EmailStr] = Field(min_length=1)
     status_file: str
@@ -249,12 +250,15 @@ def report_to_email(
         if mail_settings.include_starttls:
             server.starttls()
             server.ehlo()
-        server.login(
-            user=mail_settings.sender,
-            password=mail_settings.password,
-            initial_response_ok=True,
-        )
-        logger.info("[report_to_email] Successful login.")
+        if mail_settings.include_login:
+            server.login(
+                user=mail_settings.sender,
+                password=mail_settings.password,
+                initial_response_ok=True,
+            )
+            logger.info("[report_to_email] Successful login.")
+        else:
+            logger.info("[report_to_email] No login attempted.")
         server.sendmail(
             from_addr=mail_settings.sender,
             to_addrs=mail_settings.recipients,
