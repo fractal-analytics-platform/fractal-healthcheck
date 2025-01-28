@@ -1,3 +1,7 @@
+# 0.1.7
+
+* Add `include_login` option (\#23).
+
 # 0.1.6
 
 * Fix `service_logs` and `file_logs` (\#19).
