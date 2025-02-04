@@ -145,7 +145,6 @@ def test_ssh_on_server_failure(mock_ssh_client, monkeypatch):
 
 
 def test_service_is_active_success(mock_subprocess_run):
-    """Test when service is active."""
     result = service_is_active(["my-service"])
     assert result.log == "active"
     assert result.success is True
@@ -153,7 +152,6 @@ def test_service_is_active_success(mock_subprocess_run):
 
 
 def test_service_is_active_inactive(mock_subprocess_run):
-    """Test when service is inactive."""
     result = service_is_active(["inactive-service"])
     assert result.log == "inactive"
     assert result.success is False
@@ -161,7 +159,6 @@ def test_service_is_active_inactive(mock_subprocess_run):
 
 
 def test_service_is_active_failure(mock_subprocess_run):
-    """Test when service check fails."""
     result = service_is_active(["fail"])
     assert result.success is False
     assert result.success is False
@@ -169,7 +166,6 @@ def test_service_is_active_failure(mock_subprocess_run):
 
 
 def test_service_multiple(mock_subprocess_run):
-    """Test when service check fails."""
     result = service_is_active(["service_1", "service_2"])
     assert result.success is False
     assert result.success is False
