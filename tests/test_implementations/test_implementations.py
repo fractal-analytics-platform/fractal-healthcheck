@@ -10,7 +10,6 @@ from fractal_healthcheck.checks.implementations import (
     df,
     memory_usage,
     service_logs,
-    file_logs,
 )
 
 
