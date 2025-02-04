@@ -195,14 +195,17 @@ def check_mounts(mounts: list[str]) -> CheckResult:
 
 
 def service_logs(
-    service: str, time_interval: str, target_words: list[str]
+    service: str, time_interval: str, target_words: list[str], use_user: bool = False
 ) -> CheckResult:
     """
     Grep for target_words in service logs
     """
     parsed_target_words = "|".join(target_words)
-    try:
+    if use_user:
+        cmd = f'journalctl --user -q -u {service} --since "{time_interval}"'
+    else:
         cmd = f'journalctl -q -u {service} --since "{time_interval}"'
+    try:
         logging.info(f"{cmd=}")
 
         res1 = subprocess.run(
