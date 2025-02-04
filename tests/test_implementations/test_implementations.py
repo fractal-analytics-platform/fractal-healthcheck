@@ -1,4 +1,5 @@
 import subprocess
+import paramiko
 from fractal_healthcheck.checks.implementations import (
     subprocess_run,
     check_mounts,
@@ -10,6 +11,8 @@ from fractal_healthcheck.checks.implementations import (
     df,
     memory_usage,
     service_logs,
+    ssh_on_server,
+    service_is_active,
 )
 
 
@@ -87,12 +90,19 @@ def test_ps_count_with_threads(monkeypatch):
     assert "Number of open processes&threads" in result.log
 
 
-def test_df(tmp_path):
-    with open(tmp_path / "testfile", "w") as f:
-        f.write("test")
-    result = df(mountpoint=tmp_path.as_posix())
+def test_df(monkeypatch):
+    def mock_subprocess_run(*args, **kwargs):
+        class MockProcess:
+            stdout = """Filesystem     Type  Size  Used Avail Use% Mounted on
+    /dev/sda1      ext4  100G  50G   50G   50% /"""
+
+        return MockProcess()
+
+    monkeypatch.setattr(subprocess, "run", mock_subprocess_run)
+
+    result = df(mountpoint="/path")
     assert result.success
-    assert "Filesystem" in result.log or "Size" in result.log
+    assert "50, which is lower than 85" in result.log
 
 
 def test_memory_usage():
@@ -120,3 +130,50 @@ def test_service_logs():
         target_words=["dbus", "daemon"],
     )
     assert "dbus-daemon" in out.log
+
+
+def test_ssh_on_server_success(mock_ssh_client, monkeypatch):
+    monkeypatch.setattr(
+        paramiko.RSAKey, "from_private_key_file", lambda path: "mock_pkey"
+    )
+
+    result = ssh_on_server("user", "host", "path/to/key")
+    assert result.success is True
+
+
+def test_ssh_on_server_failure(mock_ssh_client, monkeypatch):
+    monkeypatch.setattr(
+        paramiko.RSAKey, "from_private_key_file", lambda path: "mock_pkey"
+    )
+
+    result = ssh_on_server("fail", "host", "path/to/key")
+    assert result.success is False
+    assert "Auth failed" in str(result.exception)
+
+
+def test_service_is_active_success(mock_subprocess_run):
+    result = service_is_active(["my-service"])
+    assert result.log == "active"
+    assert result.success is True
+    assert result.triggering is False
+
+
+def test_service_is_active_inactive(mock_subprocess_run):
+    result = service_is_active(["inactive-service"])
+    assert result.log == "inactive"
+    assert result.success is False
+    assert result.triggering is True
+
+
+def test_service_is_active_failure(mock_subprocess_run):
+    result = service_is_active(["fail"])
+    assert result.success is False
+    assert result.success is False
+    assert result.triggering is True
+
+
+def test_service_multiple(mock_subprocess_run):
+    result = service_is_active(["service_1", "service_2"])
+    assert result.success is False
+    assert result.success is False
+    assert result.triggering is True

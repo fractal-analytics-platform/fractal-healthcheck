@@ -4,7 +4,7 @@ import psutil
 import subprocess
 import logging
 import shlex
-
+import paramiko
 from urllib3.util import Retry
 from urllib3 import PoolManager
 from fractal_healthcheck.checks.CheckResults import CheckResult
@@ -141,6 +141,7 @@ def df(
 
     TODO: parse output (option for machine-readable output?)
     """
+    max_perc_usage = 85
     command = "df -hT"
     if mountpoint is not None:
         command = f"{command} {mountpoint}"
@@ -153,7 +154,17 @@ def df(
             timeout=timeout_seconds,
             encoding="utf-8",
         )
-        return CheckResult(log=res.stdout)
+        usage_perc = int(res.stdout.split()[-2].strip("%"))
+        if usage_perc > max_perc_usage:
+            return CheckResult(
+                log=f"The usage of {mountpoint} is {usage_perc}, which is higher than {max_perc_usage}",
+                success=False,
+                triggering=True,
+            )
+
+        return CheckResult(
+            log=f"The usage of {mountpoint} is {usage_perc}, which is lower than {max_perc_usage}"
+        )
     except Exception as e:
         return failing_result(exception=e)
 
@@ -235,3 +246,46 @@ def service_logs(
             return CheckResult(log=log, triggering=True)
     except Exception as e:
         return failing_result(exception=e)
+
+
+def ssh_on_server(username: str, host: str, pk_path: str) -> CheckResult:
+    pkey = paramiko.RSAKey.from_private_key_file(pk_path)
+    client = paramiko.SSHClient()
+    policy = paramiko.AutoAddPolicy()
+    client.set_missing_host_key_policy(policy)
+    try:
+        client.connect(host, username=username, pkey=pkey)
+        return CheckResult(
+            log=(f"Connection to {host} as {username} with pk={pk_path} is succeed")
+        )
+    except Exception as e:
+        return CheckResult(
+            log=f"Connection to {host} as {username} with pk={pk_path} is failed",
+            success=False,
+            exception=e,
+            triggering=True,
+        )
+    finally:
+        client.close()
+
+
+def service_is_active(services: list[str], use_user: bool = False) -> CheckResult:
+    parsed_services = " ".join(services)
+
+    if use_user:
+        cmd = f"systemctl is-active --user {parsed_services}"
+    else:
+        cmd = f"systemctl is-active {parsed_services}"
+    try:
+        logging.info(f"{cmd=}")
+        res = subprocess.run(
+            shlex.split(cmd),
+            capture_output=True,
+            encoding="utf-8",
+        )
+        if "inactive" in res.stdout or "failed" in res.stdout:
+            return CheckResult(log=res.stdout, success=False, triggering=True)
+        else:
+            return CheckResult(log=res.stdout)
+    except Exception as e:
+        return CheckResult(log=f"{str(e)}", success=False, triggering=True)
