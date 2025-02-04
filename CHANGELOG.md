@@ -1,3 +1,7 @@
+# Unreleased
+
+* Add `use_user` attribute to `service_logs` function (\#28)
+
 # 0.1.7
 
 * Add `include_login` option (\#23).
