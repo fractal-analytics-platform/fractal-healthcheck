@@ -1,3 +1,7 @@
+# Unreleased
+
+* Add `checks_runtime` into summary (\#27)
+
 # 0.1.7
 
 * Add `include_login` option (\#23).
