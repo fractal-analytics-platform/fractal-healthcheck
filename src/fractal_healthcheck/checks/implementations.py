@@ -235,30 +235,3 @@ def service_logs(
             return CheckResult(log=log, triggering=True)
     except Exception as e:
         return failing_result(exception=e)
-
-
-def file_logs(filename: str, target_words: list[str]) -> CheckResult:
-    """
-    Grep for target_words in a log file
-    """
-    parsed_target_words = "|".join(target_words)
-    try:
-        cmd = f'grep -E "{parsed_target_words}" {filename}'
-        res = subprocess.run(
-            shlex.split(cmd),
-            capture_output=True,
-            encoding="utf-8",
-        )
-        logging.info(f"grep returncode: {res.returncode}")
-        critical_lines = res.stdout.strip("\n").split("\n")
-        if res.returncode == 1:
-            return CheckResult(
-                log=f"Returncode={res.returncode} for {cmd=}.",
-                triggering=False,
-            )
-        else:
-            critical_lines_joined = "\n".join(critical_lines)
-            log = f"{target_words=}.\nMatching log lines:\n{critical_lines_joined}"
-            return CheckResult(log=log, triggering=True)
-    except Exception as e:
-        return failing_result(exception=e)

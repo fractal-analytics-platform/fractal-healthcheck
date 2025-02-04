@@ -121,11 +121,3 @@ def test_service_logs():
         target_words=["dbus", "daemon"],
     )
     assert "dbus-daemon" in out.log
-
-
-def test_file_logs(tmp_path):
-    filename = f"{tmp_path}/logs"
-    with open(f"{filename}", "w") as f:
-        f.write("CRITICAL: test")
-    out = file_logs(filename=filename, target_words=["CRITICAL", "random"])
-    assert "CRITICAL: test" in out.log
