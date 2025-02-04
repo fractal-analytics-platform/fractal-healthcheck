@@ -1,5 +1,6 @@
 # Unreleased
 
+* Drop check `file_logs` (\#28)
 * Add `use_user` attribute to `service_logs` function (\#28)
 
 # 0.1.7
