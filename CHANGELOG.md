@@ -1,5 +1,7 @@
-# Unreleased
+# 0.1.8
 
+* Drop check `file_logs` (\#28)
+* Add `use_user` attribute to `service_logs` function (\#28)
 * Add `checks_runtime` into summary (\#27)
 
 # 0.1.7

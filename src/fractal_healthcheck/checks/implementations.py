@@ -195,14 +195,17 @@ def check_mounts(mounts: list[str]) -> CheckResult:
 
 
 def service_logs(
-    service: str, time_interval: str, target_words: list[str]
+    service: str, time_interval: str, target_words: list[str], use_user: bool = False
 ) -> CheckResult:
     """
     Grep for target_words in service logs
     """
     parsed_target_words = "|".join(target_words)
-    try:
+    if use_user:
+        cmd = f'journalctl --user -q -u {service} --since "{time_interval}"'
+    else:
         cmd = f'journalctl -q -u {service} --since "{time_interval}"'
+    try:
         logging.info(f"{cmd=}")
 
         res1 = subprocess.run(
@@ -224,33 +227,6 @@ def service_logs(
         if res2.returncode == 1:
             return CheckResult(
                 log=f"Returncode={res2.returncode} for {cmd=}.",
-                triggering=False,
-            )
-        else:
-            critical_lines_joined = "\n".join(critical_lines)
-            log = f"{target_words=}.\nMatching log lines:\n{critical_lines_joined}"
-            return CheckResult(log=log, triggering=True)
-    except Exception as e:
-        return failing_result(exception=e)
-
-
-def file_logs(filename: str, target_words: list[str]) -> CheckResult:
-    """
-    Grep for target_words in a log file
-    """
-    parsed_target_words = "|".join(target_words)
-    try:
-        cmd = f'grep -E "{parsed_target_words}" {filename}'
-        res = subprocess.run(
-            shlex.split(cmd),
-            capture_output=True,
-            encoding="utf-8",
-        )
-        logging.info(f"grep returncode: {res.returncode}")
-        critical_lines = res.stdout.strip("\n").split("\n")
-        if res.returncode == 1:
-            return CheckResult(
-                log=f"Returncode={res.returncode} for {cmd=}.",
                 triggering=False,
             )
         else:
