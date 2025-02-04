@@ -90,12 +90,19 @@ def test_ps_count_with_threads(monkeypatch):
     assert "Number of open processes&threads" in result.log
 
 
-def test_df(tmp_path):
-    with open(tmp_path / "testfile", "w") as f:
-        f.write("test")
-    result = df(mountpoint=tmp_path.as_posix())
+def test_df(monkeypatch):
+    def mock_subprocess_run(*args, **kwargs):
+        class MockProcess:
+            stdout = """Filesystem     Type  Size  Used Avail Use% Mounted on
+    /dev/sda1      ext4  100G  50G   50G   50% /"""
+
+        return MockProcess()
+
+    monkeypatch.setattr(subprocess, "run", mock_subprocess_run)
+
+    result = df(mountpoint="/path")
     assert result.success
-    assert "Filesystem" in result.log or "Size" in result.log
+    assert "50, which is lower than 85" in result.log
 
 
 def test_memory_usage():

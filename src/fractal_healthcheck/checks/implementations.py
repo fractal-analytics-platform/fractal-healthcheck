@@ -141,6 +141,7 @@ def df(
 
     TODO: parse output (option for machine-readable output?)
     """
+    max_perc_usage = 85
     command = "df -hT"
     if mountpoint is not None:
         command = f"{command} {mountpoint}"
@@ -153,7 +154,17 @@ def df(
             timeout=timeout_seconds,
             encoding="utf-8",
         )
-        return CheckResult(log=res.stdout)
+        usage_perc = int(res.stdout.split()[-2].strip("%"))
+        if usage_perc > max_perc_usage:
+            return CheckResult(
+                log=f"The usage of {mountpoint} is {usage_perc}, which is higher than {max_perc_usage}",
+                success=False,
+                triggering=True,
+            )
+
+        return CheckResult(
+            log=f"The usage of {mountpoint} is {usage_perc}, which is lower than {max_perc_usage}"
+        )
     except Exception as e:
         return failing_result(exception=e)
 
