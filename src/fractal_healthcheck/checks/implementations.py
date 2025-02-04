@@ -4,7 +4,7 @@ import psutil
 import subprocess
 import logging
 import shlex
-
+import paramiko
 from urllib3.util import Retry
 from urllib3 import PoolManager
 from fractal_healthcheck.checks.CheckResults import CheckResult
@@ -235,3 +235,19 @@ def service_logs(
             return CheckResult(log=log, triggering=True)
     except Exception as e:
         return failing_result(exception=e)
+
+
+def ssh_on_server(username: str, host: str, pk_path: str):
+    pkey = paramiko.RSAKey.from_private_key_file(pk_path)
+    client = paramiko.SSHClient()
+    policy = paramiko.AutoAddPolicy()
+    client.set_missing_host_key_policy(policy)
+    try:
+        client.connect(host, username=username, pkey=pkey)
+        return CheckResult(
+            log=(f"Connection to {host} as {username}" "with pk={pk_path}")
+        )
+    except Exception as e:
+        return failing_result(exception=e)
+    finally:
+        client.close()

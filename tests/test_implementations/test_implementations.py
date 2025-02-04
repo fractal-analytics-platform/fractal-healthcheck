@@ -1,4 +1,5 @@
 import subprocess
+import paramiko
 from fractal_healthcheck.checks.implementations import (
     subprocess_run,
     check_mounts,
@@ -10,6 +11,7 @@ from fractal_healthcheck.checks.implementations import (
     df,
     memory_usage,
     service_logs,
+    ssh_on_server,
 )
 
 
@@ -120,3 +122,22 @@ def test_service_logs():
         target_words=["dbus", "daemon"],
     )
     assert "dbus-daemon" in out.log
+
+
+def test_ssh_on_server_success(mock_ssh_client, monkeypatch):
+    monkeypatch.setattr(
+        paramiko.RSAKey, "from_private_key_file", lambda path: "mock_pkey"
+    )
+
+    result = ssh_on_server("user", "host", "path/to/key")
+    assert result.success is True
+
+
+def test_ssh_on_server_failure(mock_ssh_client, monkeypatch):
+    monkeypatch.setattr(
+        paramiko.RSAKey, "from_private_key_file", lambda path: "mock_pkey"
+    )
+
+    result = ssh_on_server("fail", "host", "path/to/key")
+    assert result.success is False
+    assert "Auth failed" in str(result.exception)
