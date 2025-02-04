@@ -277,4 +277,4 @@ def service_is_active(services: list[str], use_user: bool = False) -> CheckResul
         else:
             return CheckResult(log=res.stdout)
     except Exception as e:
-        return failing_result(exception=e)
+        return CheckResult(log=f"{str(e)}", success=False, triggering=True)
