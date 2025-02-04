@@ -3,6 +3,7 @@
 import click
 import logging
 import sys
+import time
 from typing import Optional
 
 from fractal_healthcheck import LOGGER_NAME
@@ -64,11 +65,13 @@ def main(
     if send_mail:
         email_config = load_email_config(config_file)
 
-    # Run checks
+    # Run checks and get the checks' execution time
+    t_start = time.time()
     checks_suite.run()
+    checks_runtime = round(time.time() - t_start, 2)
 
     # Prepare report
-    report = prepare_report(checks_suite)
+    report = prepare_report(checks_suite, checks_runtime=checks_runtime)
 
     # Write report to file
     if output_file is not None:

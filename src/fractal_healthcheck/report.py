@@ -76,9 +76,10 @@ class LastMailStatus:
         return self
 
 
-def prepare_report(check_suite: CheckSuite) -> str:
+def prepare_report(check_suite: CheckSuite, checks_runtime: float) -> str:
     """
     Format the results in a CheckSuite instance to a string.
+    It takes as argument also the time needed to run the checks.
 
     Also reports the number of triggering and not succeeding checks.
     Apart from this, for the moment being this does not expect any schema in 'results_dict',
@@ -87,6 +88,7 @@ def prepare_report(check_suite: CheckSuite) -> str:
     Formatting is minimal. Since a newline at the end of a check output is not ensured,
     one is always added before a check. Then we strip duplicate newlines.
     Indent is added, for readability.
+
     """
 
     # Filtering triggering, failing, count them and print a list
@@ -100,6 +102,7 @@ def prepare_report(check_suite: CheckSuite) -> str:
         f"Total number of checks: {len(check_suite.checks)}\n"
         f"Number of checks setting off triggers: {len(triggering)}\n"
         f"Number of checks that did not complete: {len(failing)}\n"
+        f"Checks Runtime: {checks_runtime} seconds\n"
         "\n"
     )
 
