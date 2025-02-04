@@ -12,6 +12,7 @@ from fractal_healthcheck.checks.implementations import (
     memory_usage,
     service_logs,
     ssh_on_server,
+    service_is_active,
 )
 
 
@@ -141,3 +142,35 @@ def test_ssh_on_server_failure(mock_ssh_client, monkeypatch):
     result = ssh_on_server("fail", "host", "path/to/key")
     assert result.success is False
     assert "Auth failed" in str(result.exception)
+
+
+def test_service_is_active_success(mock_subprocess_run):
+    """Test when service is active."""
+    result = service_is_active(["my-service"])
+    assert result.log == "active"
+    assert result.success is True
+    assert result.triggering is False
+
+
+def test_service_is_active_inactive(mock_subprocess_run):
+    """Test when service is inactive."""
+    result = service_is_active(["inactive-service"])
+    assert result.log == "inactive"
+    assert result.success is False
+    assert result.triggering is True
+
+
+def test_service_is_active_failure(mock_subprocess_run):
+    """Test when service check fails."""
+    result = service_is_active(["fail"])
+    assert result.success is False
+    assert result.success is False
+    assert result.triggering is True
+
+
+def test_service_multiple(mock_subprocess_run):
+    """Test when service check fails."""
+    result = service_is_active(["service_1", "service_2"])
+    assert result.success is False
+    assert result.success is False
+    assert result.triggering is True
