@@ -53,18 +53,18 @@ def url_json(url: str) -> CheckResult:
         return CheckResult(exception=e, success=False)
 
 
-def system_load(max_load: float | None = None) -> CheckResult:
+def system_load(max_load: float) -> CheckResult:
     """
     Get system load averages, keep only the 1-minute average
     Success is False if larger than max_load
     If max_load is < 0: use os.cpu_count
     """
+    max_load_fraction: float = 0.75
+    load_fraction = psutil.getloadavg()[1] / psutil.cpu_count()
+
     try:
-        load = os.getloadavg()[0]
-        if max_load is None or max_load < 0:
-            max_load = os.cpu_count()
-        success = max_load > load
-        log = f"System load: {load}"
+        success = max_load_fraction > load_fraction
+        log = f"System load: {load_fraction}"
         return CheckResult(log=log, success=success)
     except Exception as e:
         return CheckResult(exception=e, success=False)
@@ -119,27 +119,16 @@ def ps_count_with_threads() -> CheckResult:
         return CheckResult(exception=e, success=False)
 
 
-def df(
+def disk_usage(
     mountpoint: str,
     timeout_seconds: int = 60,
 ) -> CheckResult:
     """
-    Call 'df' on provided 'mountpoint'
+    Call psutil.disk_usage on provided 'mountpoint'
     """
     max_perc_usage = 85
-    command = "df -hT"
-    if mountpoint is not None:
-        command = f"{command} {mountpoint}"
-
+    usage_perc = psutil.disk_usage(mountpoint).percent
     try:
-        res = subprocess.run(
-            shlex.split(command),
-            check=True,
-            capture_output=True,
-            timeout=timeout_seconds,
-            encoding="utf-8",
-        )
-        usage_perc = int(res.stdout.split()[-2].strip("%"))
         if usage_perc > max_perc_usage:
             return CheckResult(
                 log=f"The usage of {mountpoint} is {usage_perc}%, which is higher than {max_perc_usage}%",

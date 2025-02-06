@@ -1,5 +1,6 @@
 import subprocess
 import paramiko
+import psutil
 from fractal_healthcheck.checks.implementations import (
     subprocess_run,
     check_mounts,
@@ -8,7 +9,7 @@ from fractal_healthcheck.checks.implementations import (
     lsof_count,
     count_processes,
     ps_count_with_threads,
-    df,
+    disk_usage,
     memory_usage,
     service_logs,
     ssh_on_server,
@@ -89,19 +90,24 @@ def test_ps_count_with_threads(monkeypatch):
     assert "Number of open processes&threads" in result.log
 
 
-def test_df(monkeypatch):
-    def mock_subprocess_run(*args, **kwargs):
-        class MockProcess:
-            stdout = """Filesystem     Type  Size  Used Avail Use% Mounted on
-    /dev/sda1      ext4  100G  50G   50G   50% /"""
+def test_disk_usage_low(monkeypatch):
+    def mock_disk_usage(_):
+        return type("Mock", (), {"percent": 50})
 
-        return MockProcess()
+    monkeypatch.setattr(psutil, "disk_usage", mock_disk_usage)
+    result = disk_usage("/mock")
+    assert result.success is True
+    assert "lower than 85%" in result.log
 
-    monkeypatch.setattr(subprocess, "run", mock_subprocess_run)
 
-    result = df(mountpoint="/path")
-    assert result.success
-    assert "50%, which is lower than 85%" in result.log
+def test_disk_usage_high(monkeypatch):
+    def mock_disk_usage(_):
+        return type("Mock", (), {"percent": 90})
+
+    monkeypatch.setattr(psutil, "disk_usage", mock_disk_usage)
+    result = disk_usage("/mock")
+    assert result.success is False
+    assert "higher than 85%" in result.log
 
 
 def test_memory_usage():
