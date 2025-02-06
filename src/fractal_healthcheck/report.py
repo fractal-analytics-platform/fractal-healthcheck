@@ -23,6 +23,7 @@ class MailSettings(BaseModel):
     recipients: list[EmailStr] = Field(min_length=1)
     status_file: str
     grace_time_not_triggering_hours: int = 72
+    grace_time_triggering_hours: int = 4
     instance_name: str
 
 
@@ -184,6 +185,16 @@ def report_to_email(
             )
 
         if any_failing:
+            if since_last > timedelta(hours=mail_settings.grace_time_triggering_hours):
+                logger.info(
+                    "[report_to_email] Will send email, reason: triggering, and enough time elapsed"
+                )
+                mail_reason = "WARNING (" f"failing: {any_failing}" ")"
+            else:
+                mail_reason = None
+                logger.info(
+                    "[report_to_email] Will not send, reason: triggering, but not enough time elapsed"
+                )
             logger.info(
                 "[report_to_email] Will send email, reason: failing, and enough time elapsed"
             )
