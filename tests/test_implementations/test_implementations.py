@@ -45,8 +45,7 @@ def test_url_json(monkeypatch):
 
     monkeypatch.setattr("urllib3.PoolManager.request", mock_request_404)
     result = url_json("http://example.com/")
-    assert result.success
-    assert result.triggering
+    assert not result.success
     assert "404" in result.log
     assert "error" in result.log
     assert "message" in result.log
@@ -102,7 +101,7 @@ def test_df(monkeypatch):
 
     result = df(mountpoint="/path")
     assert result.success
-    assert "50, which is lower than 85" in result.log
+    assert "50%, which is lower than 85%" in result.log
 
 
 def test_memory_usage():
@@ -153,27 +152,24 @@ def test_ssh_on_server_failure(mock_ssh_client, monkeypatch):
 
 def test_service_is_active_success(mock_subprocess_run):
     result = service_is_active(["my-service"])
-    assert result.log == "active"
+    assert result.log == '{"my-service": "active"}'
     assert result.success is True
-    assert result.triggering is False
 
 
 def test_service_is_active_inactive(mock_subprocess_run):
     result = service_is_active(["inactive-service"])
-    assert result.log == "inactive"
+    assert result.log == '{"inactive-service": "inactive"}'
     assert result.success is False
-    assert result.triggering is True
 
 
 def test_service_is_active_failure(mock_subprocess_run):
     result = service_is_active(["fail"])
     assert result.success is False
     assert result.success is False
-    assert result.triggering is True
 
 
 def test_service_multiple(mock_subprocess_run):
     result = service_is_active(["service_1", "service_2"])
+    assert result.log == '{"service_1": "active", "service_2": "inactive"}'
     assert result.success is False
     assert result.success is False
-    assert result.triggering is True
