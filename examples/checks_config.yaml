@@ -23,11 +23,6 @@ checks:
   - name: "Count processes and threads (ps -AL)"
     function_name: ps_count_with_threads
 
-  - name: "Storage usage"
-    function_name: df
-    kwargs:
-      timeout_seconds: 30
-
   - name: "Storage usage in /home"
     function_name: df
     kwargs:
