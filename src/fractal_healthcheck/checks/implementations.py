@@ -10,19 +10,6 @@ from urllib3 import PoolManager
 from fractal_healthcheck.checks.CheckResults import CheckResult
 
 
-def failing_result(exception: Exception) -> CheckResult:
-    """
-    To be called when a check call catches an exception:
-    return a CheckResults instance with log=exception
-    """
-    return CheckResult(
-        log="",
-        exception=exception,
-        success=False,
-        triggering=False,
-    )
-
-
 def subprocess_run(command: str) -> CheckResult:
     """
     Generic call to `subprocess.run`
@@ -36,13 +23,13 @@ def subprocess_run(command: str) -> CheckResult:
         )
         return CheckResult(log=res.stdout)
     except Exception as e:
-        return failing_result(exception=e)
+        return CheckResult(exception=e, success=False)
 
 
 def url_json(url: str) -> CheckResult:
     """
     Log the json-parsed output of a request to 'url'
-    Room for enhancement: implement trigger, e.g. matching regex in returned contents
+    Room for enhancement: e.g. matching regex in returned contents
     """
     try:
         retries = Retry(connect=5)
@@ -61,26 +48,26 @@ def url_json(url: str) -> CheckResult:
                 sort_keys=True,
                 indent=2,
             )
-            return CheckResult(log=log, triggering=True)
+            return CheckResult(log=log, success=False)
     except Exception as e:
-        return failing_result(exception=e)
+        return CheckResult(exception=e, success=False)
 
 
 def system_load(max_load: float | None = None) -> CheckResult:
     """
     Get system load averages, keep only the 1-minute average
-    Optionally trigger if larger than max_load
+    Success is False if larger than max_load
     If max_load is < 0: use os.cpu_count
     """
     try:
         load = os.getloadavg()[0]
         if max_load is None or max_load < 0:
             max_load = os.cpu_count()
-        triggering = load > max_load
+        success = max_load > load
         log = f"System load: {load}"
-        return CheckResult(log=log, triggering=triggering)
+        return CheckResult(log=log, success=success)
     except Exception as e:
-        return failing_result(exception=e)
+        return CheckResult(exception=e, success=False)
 
 
 def lsof_count() -> CheckResult:
@@ -98,7 +85,7 @@ def lsof_count() -> CheckResult:
         log = f"Number of open files (via lsof): {num_lines}"
         return CheckResult(log=log)
     except Exception as e:
-        return failing_result(exception=e)
+        return CheckResult(exception=e, success=False)
 
 
 def count_processes() -> CheckResult:
@@ -111,7 +98,7 @@ def count_processes() -> CheckResult:
         log = f"Number of processes (via psutil.pids): {nprocesses}"
         return CheckResult(log=log)
     except Exception as e:
-        return failing_result(e)
+        return CheckResult(exception=e, success=False)
 
 
 def ps_count_with_threads() -> CheckResult:
@@ -129,17 +116,15 @@ def ps_count_with_threads() -> CheckResult:
         log = f"Number of open processes&threads (via ps -AL): {num_lines}"
         return CheckResult(log=log)
     except Exception as e:
-        return failing_result(exception=e)
+        return CheckResult(exception=e, success=False)
 
 
 def df(
-    mountpoint: str | None = None,
+    mountpoint: str,
     timeout_seconds: int = 60,
 ) -> CheckResult:
     """
-    Call 'df' on provided 'mountpoint' (or on all, if no mountpoint is provided)
-
-    TODO: parse output (option for machine-readable output?)
+    Call 'df' on provided 'mountpoint'
     """
     max_perc_usage = 85
     command = "df -hT"
@@ -157,16 +142,15 @@ def df(
         usage_perc = int(res.stdout.split()[-2].strip("%"))
         if usage_perc > max_perc_usage:
             return CheckResult(
-                log=f"The usage of {mountpoint} is {usage_perc}, which is higher than {max_perc_usage}",
+                log=f"The usage of {mountpoint} is {usage_perc}%, which is higher than {max_perc_usage}%",
                 success=False,
-                triggering=True,
             )
 
         return CheckResult(
-            log=f"The usage of {mountpoint} is {usage_perc}, which is lower than {max_perc_usage}"
+            log=f"The usage of {mountpoint} is {usage_perc}%, which is lower than {max_perc_usage}%"
         )
     except Exception as e:
-        return failing_result(exception=e)
+        return CheckResult(exception=e, success=False)
 
 
 def memory_usage() -> CheckResult:
@@ -183,7 +167,7 @@ def memory_usage() -> CheckResult:
                 mem_usage_human[f] = f"{getattr(mem_usage, f)}%"
         return CheckResult(log=json.dumps(mem_usage_human, indent=2))
     except Exception as e:
-        return failing_result(e)
+        return CheckResult(exception=e, success=False)
 
 
 def check_mounts(mounts: list[str]) -> CheckResult:
@@ -202,7 +186,7 @@ def check_mounts(mounts: list[str]) -> CheckResult:
         log = f"Number of files/folders (via ls {paths}): {num_objs}"
         return CheckResult(log=log)
     except Exception as e:
-        return failing_result(exception=e)
+        return CheckResult(exception=e, success=False)
 
 
 def service_logs(
@@ -237,15 +221,14 @@ def service_logs(
         critical_lines = res2.stdout.strip("\n").split("\n")
         if res2.returncode == 1:
             return CheckResult(
-                log=f"Returncode={res2.returncode} for {cmd=}.",
-                triggering=False,
+                log=f"Returncode={res2.returncode} for {cmd=}.", success=True
             )
         else:
             critical_lines_joined = "\n".join(critical_lines)
             log = f"{target_words=}.\nMatching log lines:\n{critical_lines_joined}"
-            return CheckResult(log=log, triggering=True)
+            return CheckResult(log=log, success=True)
     except Exception as e:
-        return failing_result(exception=e)
+        return CheckResult(exception=e, success=False)
 
 
 def ssh_on_server(username: str, host: str, pk_path: str) -> CheckResult:
@@ -260,10 +243,8 @@ def ssh_on_server(username: str, host: str, pk_path: str) -> CheckResult:
         )
     except Exception as e:
         return CheckResult(
-            log=f"Connection to {host} as {username} with pk={pk_path} is failed",
-            success=False,
             exception=e,
-            triggering=True,
+            success=False,
         )
     finally:
         client.close()
@@ -283,9 +264,11 @@ def service_is_active(services: list[str], use_user: bool = False) -> CheckResul
             capture_output=True,
             encoding="utf-8",
         )
+        statuses = res.stdout.split("\n")
+        log = dict(zip(services, statuses))
         if "inactive" in res.stdout or "failed" in res.stdout:
-            return CheckResult(log=res.stdout, success=False, triggering=True)
+            return CheckResult(log=json.dumps(log), success=False)
         else:
-            return CheckResult(log=res.stdout)
+            return CheckResult(log=json.dumps(log))
     except Exception as e:
-        return CheckResult(log=f"{str(e)}", success=False, triggering=True)
+        return CheckResult(exception=e, success=False)
