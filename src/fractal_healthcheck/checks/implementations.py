@@ -119,7 +119,6 @@ def ps_count_with_threads() -> CheckResult:
 
 def disk_usage(
     mountpoint: str,
-    timeout_seconds: int = 60,
 ) -> CheckResult:
     """
     Call psutil.disk_usage on provided 'mountpoint'
