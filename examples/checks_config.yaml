@@ -12,7 +12,8 @@ checks:
 
   - name: "System load"
     function_name: system_load
-    max_load: -1
+    kwargs:
+      max_load_fraction: -1
 
   - name: "Count open files"
     function_name: lsof_count
@@ -24,10 +25,9 @@ checks:
     function_name: ps_count_with_threads
 
   - name: "Storage usage in /home"
-    function_name: df
+    function_name: disk_usage
     kwargs:
       mountpoint: "/home"
-      timeout_seconds: 30
 
   - name: "Memory usage"
     function_name: memory_usage
