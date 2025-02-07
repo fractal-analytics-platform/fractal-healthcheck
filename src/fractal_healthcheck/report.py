@@ -99,7 +99,7 @@ def prepare_report(check_suite: CheckSuite, checks_runtime: float) -> str:
         f"Report timestamp: {datetime.now(tz=timezone.utc)}\n"
         f"Fractal-healthcheck version: {fractal_healthcheck.__VERSION__}\n"
         f"Total number of checks: {len(check_suite.checks)}\n"
-        f"Number of checks that did not complete: {len(failing)}\n"
+        f"Number of failed checks: {len(failing)}\n"
         f"Checks Runtime: {checks_runtime} seconds\n"
         "\n"
     )
@@ -108,9 +108,9 @@ def prepare_report(check_suite: CheckSuite, checks_runtime: float) -> str:
     msg_remaining = textwrap.indent("\n".join(remaining.keys()), " * ")
     recap = (
         "# Recap\n\n"
-        "List of checks that did not complete:\n"
+        "List of failed checks:\n"
         f"{msg_failing}\n"
-        "List of remaining checks:\n"
+        "List of successful checks:\n"
         f"{msg_remaining}\n"
         "\n"
     )
@@ -218,7 +218,7 @@ def report_to_email(
             f"[report_to_email] Cannot read status_file='{status_file}', original error: {e}."
         )
         last_mail_info = LastMailStatus()
-        mail_reason = f"First report (failing: {any_failing})"
+        mail_reason = "First report"
 
     if mail_reason is None:
         logger.info("[report_to_email] Exit.")

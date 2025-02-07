@@ -52,7 +52,7 @@ def url_json(url: str) -> CheckResult:
         return CheckResult(exception=e, success=False)
 
 
-def system_load(max_load_fraction: float) -> CheckResult:
+def system_load(max_load_fraction: float = 0.7) -> CheckResult:
     """
     Get system load averages, keep only the 5-minute average
     """
@@ -116,15 +116,19 @@ def ps_count_with_threads() -> CheckResult:
 
 def disk_usage(
     mountpoint: str,
+    max_perc_usage: int = 85,
 ) -> CheckResult:
     """
     Call psutil.disk_usage on provided 'mountpoint'
     """
-    max_perc_usage = 85
     usage_perc = psutil.disk_usage(mountpoint).percent
+    tot_disk = round(((psutil.disk_usage(mountpoint).total / 1000) / 1000) / 1000, 2)
     try:
         return CheckResult(
-            log=f"The usage of {mountpoint} is {usage_perc}%, while the threashold is {max_perc_usage}%",
+            log=(
+                f"The usage of {mountpoint} is {usage_perc}%, while the threshold is "
+                f"{max_perc_usage}%.\nTotal disk memory is {tot_disk} GB"
+            ),
             success=max_perc_usage > usage_perc,
         )
     except Exception as e:
@@ -139,7 +143,7 @@ def memory_usage(max_memory_usage: int = 75) -> CheckResult:
         mem_usage = psutil.virtual_memory()
 
         mem_usage_total = round(
-            ((mem_usage.total / 1024) / 1024) / 1024, 2
+            ((mem_usage.total / 1000) / 1000) / 1000, 2
         )  # GigaBytes
         mem_usage_available = round(((mem_usage.available / 1024) / 1024) / 1024, 2)
         mem_usage_percent = round(mem_usage.percent, 1)
@@ -149,7 +153,7 @@ def memory_usage(max_memory_usage: int = 75) -> CheckResult:
             "Percent": f"{mem_usage_percent}%",
         }
         return CheckResult(
-            log=f"The memory usage is {mem_usage_percent}%, while the threashold is {max_memory_usage}%\n {json.dumps(log, indent=2)}",
+            log=f"The memory usage is {mem_usage_percent}%, while the threshold is {max_memory_usage}%\n{json.dumps(log, indent=2)}",
             success=max_memory_usage > mem_usage_percent,
         )
     except Exception as e:
@@ -231,7 +235,7 @@ def ssh_on_server(username: str, host: str, private_key_path: str) -> CheckResul
             res = connection.run("whoami")
             return CheckResult(
                 log=(
-                    f"Connection to {host} as {username} with pk={private_key_path} is succeed, result: {res}"
+                    f"Connection to {host} as {username} with private_key={private_key_path} result:\n{res.stdout}"
                 )
             )
     except Exception as e:
@@ -258,8 +262,8 @@ def service_is_active(services: list[str], use_user: bool = False) -> CheckResul
         statuses = res.stdout.split("\n")
         log = dict(zip(services, statuses))
         if "inactive" in res.stdout or "failed" in res.stdout:
-            return CheckResult(log=json.dumps(log), success=False)
+            return CheckResult(log=json.dumps(log, indent=2), success=False)
         else:
-            return CheckResult(log=json.dumps(log))
+            return CheckResult(log=json.dumps(log, indent=2))
     except Exception as e:
         return CheckResult(exception=e, success=False)

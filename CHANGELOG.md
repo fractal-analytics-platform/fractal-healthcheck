@@ -1,3 +1,8 @@
+# 0.1.10
+
+* Improve `log` messages (\#38).
+* Add default values for `memory_usage`, `disk_usage`, `system_load` (\#38).
+
 # 0.1.9
 
 * Add `ssh_on_server` to check ssh connection (\#29).
