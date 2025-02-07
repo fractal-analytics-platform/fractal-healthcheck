@@ -189,7 +189,7 @@ def report_to_email(
                 logger.info(
                     "[report_to_email] Will send email, reason: triggering, and enough time elapsed"
                 )
-                mail_reason = "WARNING (" f"failing: {any_failing}" ")"
+                mail_reason = "WARNING"
             else:
                 mail_reason = None
                 logger.info(
@@ -198,7 +198,7 @@ def report_to_email(
             logger.info(
                 "[report_to_email] Will send email, reason: failing, and enough time elapsed"
             )
-            mail_reason = "WARNING (" f"failing: {any_failing}" ")"
+            mail_reason = "WARNING"
         else:
             if since_last > timedelta(
                 hours=mail_settings.grace_time_not_triggering_hours
@@ -218,7 +218,7 @@ def report_to_email(
             f"[report_to_email] Cannot read status_file='{status_file}', original error: {e}."
         )
         last_mail_info = LastMailStatus()
-        mail_reason = "First report (" f"failing: {any_failing}" ")"
+        mail_reason = f"First report (failing: {any_failing})"
 
     if mail_reason is None:
         logger.info("[report_to_email] Exit.")
