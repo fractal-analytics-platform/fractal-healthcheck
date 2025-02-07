@@ -52,13 +52,12 @@ def url_json(url: str) -> CheckResult:
         return CheckResult(exception=e, success=False)
 
 
-def system_load(max_load: float) -> CheckResult:
+def system_load(max_load_fraction: float) -> CheckResult:
     """
     Get system load averages, keep only the 1-minute average
     Success is False if larger than max_load
     If max_load is < 0: use os.cpu_count
     """
-    max_load_fraction: float = 0.75
     load_fraction = psutil.getloadavg()[1] / psutil.cpu_count()
 
     try:
