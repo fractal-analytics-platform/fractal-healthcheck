@@ -95,7 +95,7 @@ def test_disk_usage_low(monkeypatch):
     monkeypatch.setattr(psutil, "disk_usage", mock_disk_usage)
     result = disk_usage("/mock")
     assert result.success is True
-    assert "lower than 85%" in result.log
+    assert "The usage of /mock is 50%, while the threashold is 85%" in result.log
 
 
 def test_disk_usage_high(monkeypatch):
@@ -105,7 +105,7 @@ def test_disk_usage_high(monkeypatch):
     monkeypatch.setattr(psutil, "disk_usage", mock_disk_usage)
     result = disk_usage("/mock")
     assert result.success is False
-    assert "higher than 85%" in result.log
+    assert "The usage of /mock is 90%, while the threashold is 85%" in result.log
 
 
 def test_memory_usage():

@@ -125,17 +125,16 @@ def disk_usage(
     try:
         return CheckResult(
             log=f"The usage of {mountpoint} is {usage_perc}%, while the threashold is {max_perc_usage}%",
-            success=usage_perc > max_perc_usage,
+            success=max_perc_usage > usage_perc,
         )
     except Exception as e:
         return CheckResult(exception=e, success=False)
 
 
-def memory_usage() -> CheckResult:
+def memory_usage(max_memory_usage: int = 75) -> CheckResult:
     """
     Memory usage, via psutil.virtual_memory
     """
-    MAX_MEMORY_USAGE = 75
     try:
         mem_usage = psutil.virtual_memory()
 
@@ -150,8 +149,8 @@ def memory_usage() -> CheckResult:
             "Percent": f"{mem_usage_percent}%",
         }
         return CheckResult(
-            log=f"The memory usage is {mem_usage_percent}%, while the threashold is {MAX_MEMORY_USAGE}%\n {json.dumps(log, indent=2)}",
-            success=mem_usage_percent > MAX_MEMORY_USAGE,
+            log=f"The memory usage is {mem_usage_percent}%, while the threashold is {max_memory_usage}%\n {json.dumps(log, indent=2)}",
+            success=max_memory_usage > mem_usage_percent,
         )
     except Exception as e:
         return CheckResult(exception=e, success=False)
