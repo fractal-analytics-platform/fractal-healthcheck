@@ -3,7 +3,7 @@ import psutil
 import subprocess
 import logging
 import shlex
-import paramiko
+from fabric.connection import Connection
 from urllib3.util import Retry
 from urllib3 import PoolManager
 from fractal_healthcheck.checks.CheckResults import CheckResult
@@ -130,7 +130,7 @@ def disk_usage(
     try:
         if usage_perc > max_perc_usage:
             return CheckResult(
-                log=f"The usage of {mountpoint} is {usage_perc}%, which is higher than {max_perc_usage}%",
+                log=f"The usage of {mountpoint} is {usage_perc}%, which is greater than {max_perc_usage}%",
                 success=False,
             )
 
@@ -145,15 +145,26 @@ def memory_usage() -> CheckResult:
     """
     Memory usage, via psutil.virtual_memory
     """
+    MAX_MEMORY_USAGE = 75
     try:
         mem_usage = psutil.virtual_memory()
-        mem_usage_human = {}
-        for f in mem_usage._fields:
-            if f != "percent":
-                mem_usage_human[f] = psutil._common.bytes2human(getattr(mem_usage, f))
-            else:
-                mem_usage_human[f] = f"{getattr(mem_usage, f)}%"
-        return CheckResult(log=json.dumps(mem_usage_human, indent=2))
+
+        mem_usage_total = round(
+            ((mem_usage.total / 1024) / 1024) / 1024, 2
+        )  # GigaBytes
+        mem_usage_available = round(((mem_usage.available / 1024) / 1024) / 1024, 2)
+        mem_usage_percent = round(mem_usage.percent, 1)
+        log = {
+            "Total memory": mem_usage_total,
+            "Free memory": mem_usage_available,
+            "Percent": mem_usage_percent,
+        }
+        if mem_usage_percent > MAX_MEMORY_USAGE:
+            return CheckResult(
+                log=f"{mem_usage_percent} > {MAX_MEMORY_USAGE}\n {json.dumps(log, indent=2)}",
+                success=True,
+            )
+        return CheckResult(log=json.dumps(log, indent=2))
     except Exception as e:
         return CheckResult(exception=e, success=False)
 
@@ -220,22 +231,27 @@ def service_logs(
 
 
 def ssh_on_server(username: str, host: str, pk_path: str) -> CheckResult:
-    pkey = paramiko.RSAKey.from_private_key_file(pk_path)
-    client = paramiko.SSHClient()
-    policy = paramiko.AutoAddPolicy()
-    client.set_missing_host_key_policy(policy)
-    try:
-        client.connect(host, username=username, pkey=pkey)
-        return CheckResult(
-            log=(f"Connection to {host} as {username} with pk={pk_path} is succeed")
-        )
-    except Exception as e:
-        return CheckResult(
-            exception=e,
-            success=False,
-        )
-    finally:
-        client.close()
+    with Connection(
+        host=host,
+        user=username,
+        forward_agent=False,
+        connect_kwargs={
+            "key_filename": pk_path,
+            "look_for_keys": False,
+        },
+    ) as connection:
+        try:
+            res = connection.run("whoami")
+            return CheckResult(
+                log=(
+                    f"Connection to {host} as {username} with pk={pk_path} is succeed, result: {res}"
+                )
+            )
+        except Exception as e:
+            return CheckResult(
+                exception=e,
+                success=False,
+            )
 
 
 def service_is_active(services: list[str], use_user: bool = False) -> CheckResult:

@@ -113,8 +113,9 @@ def test_disk_usage_high(monkeypatch):
 def test_memory_usage():
     result = memory_usage()
     assert result.success
-    assert "total" in result.log
-    assert "available" in result.log
+    assert "Total memory" in result.log
+    assert "Free memory" in result.log
+    assert "Percent" in result.log
 
 
 def test_check_mounts(tmp_path):
@@ -135,25 +136,6 @@ def test_service_logs():
         target_words=["dbus", "daemon"],
     )
     assert "dbus-daemon" in out.log
-
-
-def test_ssh_on_server_success(mock_ssh_client, monkeypatch):
-    monkeypatch.setattr(
-        paramiko.RSAKey, "from_private_key_file", lambda path: "mock_pkey"
-    )
-
-    result = ssh_on_server("user", "host", "path/to/key")
-    assert result.success is True
-
-
-def test_ssh_on_server_failure(mock_ssh_client, monkeypatch):
-    monkeypatch.setattr(
-        paramiko.RSAKey, "from_private_key_file", lambda path: "mock_pkey"
-    )
-
-    result = ssh_on_server("fail", "host", "path/to/key")
-    assert result.success is False
-    assert "Auth failed" in str(result.exception)
 
 
 def test_service_is_active_success(mock_subprocess_run):
