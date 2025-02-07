@@ -61,9 +61,8 @@ def system_load(max_load_fraction: float) -> CheckResult:
     load_fraction = psutil.getloadavg()[1] / psutil.cpu_count()
 
     try:
-        success = max_load_fraction > load_fraction
         log = f"System load: {load_fraction}"
-        return CheckResult(log=log, success=success)
+        return CheckResult(log=log, success=max_load_fraction > load_fraction)
     except Exception as e:
         return CheckResult(exception=e, success=False)
 
@@ -126,14 +125,9 @@ def disk_usage(
     max_perc_usage = 85
     usage_perc = psutil.disk_usage(mountpoint).percent
     try:
-        if usage_perc > max_perc_usage:
-            return CheckResult(
-                log=f"The usage of {mountpoint} is {usage_perc}%, which is greater than {max_perc_usage}%",
-                success=False,
-            )
-
         return CheckResult(
-            log=f"The usage of {mountpoint} is {usage_perc}%, which is lower than {max_perc_usage}%"
+            log=f"The usage of {mountpoint} is {usage_perc}%, which is lower than {max_perc_usage}%",
+            success=usage_perc > max_perc_usage,
         )
     except Exception as e:
         return CheckResult(exception=e, success=False)
@@ -153,16 +147,14 @@ def memory_usage() -> CheckResult:
         mem_usage_available = round(((mem_usage.available / 1024) / 1024) / 1024, 2)
         mem_usage_percent = round(mem_usage.percent, 1)
         log = {
-            "Total memory": mem_usage_total,
-            "Free memory": mem_usage_available,
-            "Percent": mem_usage_percent,
+            "Total memory": f"{mem_usage_total} GB",
+            "Free memory": f"{mem_usage_available} GB",
+            "Percent": f"{mem_usage_percent} GB",
         }
-        if mem_usage_percent > MAX_MEMORY_USAGE:
-            return CheckResult(
-                log=f"{mem_usage_percent} > {MAX_MEMORY_USAGE}\n {json.dumps(log, indent=2)}",
-                success=True,
-            )
-        return CheckResult(log=json.dumps(log, indent=2))
+        return CheckResult(
+            log=f"{mem_usage_percent} > {MAX_MEMORY_USAGE}\n {json.dumps(log, indent=2)}",
+            success=mem_usage_percent > MAX_MEMORY_USAGE,
+        )
     except Exception as e:
         return CheckResult(exception=e, success=False)
 
@@ -223,33 +215,33 @@ def service_logs(
         else:
             critical_lines_joined = "\n".join(critical_lines)
             log = f"{target_words=}.\nMatching log lines:\n{critical_lines_joined}"
-            return CheckResult(log=log, success=True)
+            return CheckResult(log=log, success=False)
     except Exception as e:
         return CheckResult(exception=e, success=False)
 
 
 def ssh_on_server(username: str, host: str, pk_path: str) -> CheckResult:
-    with Connection(
-        host=host,
-        user=username,
-        forward_agent=False,
-        connect_kwargs={
-            "key_filename": pk_path,
-            "look_for_keys": False,
-        },
-    ) as connection:
-        try:
+    try:
+        with Connection(
+            host=host,
+            user=username,
+            forward_agent=False,
+            connect_kwargs={
+                "key_filename": pk_path,
+                "look_for_keys": False,
+            },
+        ) as connection:
             res = connection.run("whoami")
             return CheckResult(
                 log=(
                     f"Connection to {host} as {username} with pk={pk_path} is succeed, result: {res}"
                 )
             )
-        except Exception as e:
-            return CheckResult(
-                exception=e,
-                success=False,
-            )
+    except Exception as e:
+        return CheckResult(
+            exception=e,
+            success=False,
+        )
 
 
 def service_is_active(services: list[str], use_user: bool = False) -> CheckResult:
