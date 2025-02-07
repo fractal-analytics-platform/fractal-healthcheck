@@ -54,7 +54,6 @@ def test_successful_run(tmp_path: Path, caplog):
     with report_file.open("r") as f:
         report = f.read()
     assert "Total number of checks: 4" in report
-    assert "Number of checks setting off triggers: 0" in report
     assert "Number of checks that did not complete: 0" in report
     assert "Email sent" in caplog.text
 
@@ -66,7 +65,7 @@ def test_successful_run(tmp_path: Path, caplog):
     assert _current_num_messages() == initial_num_messages + 2
 
 
-def test_triggering_run(tmp_path: Path, caplog):
+def test_failing_run(tmp_path: Path, caplog):
     caplog.set_level(0)
     initial_num_messages = _current_num_messages()
 
@@ -90,7 +89,6 @@ def test_triggering_run(tmp_path: Path, caplog):
     with report_file.open("r") as f:
         report = f.read()
     assert "Total number of checks: 1" in report
-    assert "Number of checks setting off triggers: 0" in report
     assert "Number of checks that did not complete: 1" in report
     assert "Email sent" in caplog.text
     assert _current_num_messages() == initial_num_messages + 1

@@ -6,18 +6,15 @@ class CheckResult(BaseModel):
     log: str = "N/A"
     exception: Exception | None = None
     success: bool = True
-    triggering: bool = False
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     @property
     def status(self) -> str:
-        if self.success and not self.triggering:
+        if self.success:
             return "PASS"
-        elif self.success and self.triggering:
-            return "FAIL"
         else:
-            return "ERROR"
+            return "FAIL"
 
     @property
     def full_log(self) -> str:

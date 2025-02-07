@@ -1,8 +1,15 @@
+# 0.1.9
+
+* Add `ssh_on_server` to check ssh connection (\#29).
+* Replace `df` with `psutil.disk_usage` (\#29).
+* Remove `triggering` in favor of `success` (\#29).
+* Add `service_is_active` to monitor services status (\#29).
+
 # 0.1.8
 
-* Drop check `file_logs` (\#28)
-* Add `use_user` attribute to `service_logs` function (\#28)
-* Add `checks_runtime` into summary (\#27)
+* Drop check `file_logs` (\#28).
+* Add `use_user` attribute to `service_logs` function (\#28).
+* Add `checks_runtime` into summary (\#27).
 
 # 0.1.7
 

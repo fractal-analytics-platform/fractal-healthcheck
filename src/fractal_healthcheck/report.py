@@ -81,7 +81,7 @@ def prepare_report(check_suite: CheckSuite, checks_runtime: float) -> str:
     Format the results in a CheckSuite instance to a string.
     It takes as argument also the time needed to run the checks.
 
-    Also reports the number of triggering and not succeeding checks.
+    Also reports the number of not succeeding checks.
     Apart from this, for the moment being this does not expect any schema in 'results_dict',
     it simply wraps string concatenation as "key: str(value)"
 
@@ -91,28 +91,23 @@ def prepare_report(check_suite: CheckSuite, checks_runtime: float) -> str:
 
     """
 
-    # Filtering triggering, failing, count them and print a list
-    triggering = check_suite.get_triggering_results()
+    # Filtering failing and count them and print a list
     failing = check_suite.get_failing_results()
-    remaining = check_suite.get_non_failing_non_triggering_results()
+    remaining = check_suite.get_non_failing_results()
     summary = (
         f"# Summary\n\n"
         f"Report timestamp: {datetime.now(tz=timezone.utc)}\n"
         f"Fractal-healthcheck version: {fractal_healthcheck.__VERSION__}\n"
         f"Total number of checks: {len(check_suite.checks)}\n"
-        f"Number of checks setting off triggers: {len(triggering)}\n"
         f"Number of checks that did not complete: {len(failing)}\n"
         f"Checks Runtime: {checks_runtime} seconds\n"
         "\n"
     )
 
-    msg_triggering = textwrap.indent("\n".join(triggering.keys()), " * ")
     msg_failing = textwrap.indent("\n".join(failing.keys()), " * ")
     msg_remaining = textwrap.indent("\n".join(remaining.keys()), " * ")
     recap = (
         "# Recap\n\n"
-        "List of checks setting off triggers:\n"
-        f"{msg_triggering}\n"
         "List of checks that did not complete:\n"
         f"{msg_failing}\n"
         "List of remaining checks:\n"
@@ -170,7 +165,6 @@ def report_to_email(
     # (1/3) Find out whether email should be sent
 
     status_file = mail_settings.status_file
-    any_triggering = check_suite.any_triggering
     any_failing = check_suite.any_failing
 
     try:
@@ -190,34 +184,33 @@ def report_to_email(
                 f"[report_to_email] Last report email sent on {last_mail_info.last_email_timestamp} ({since_last} ago)"
             )
 
-        if any_triggering or any_failing:
+        if any_failing:
             if since_last > timedelta(hours=mail_settings.grace_time_triggering_hours):
                 logger.info(
                     "[report_to_email] Will send email, reason: triggering, and enough time elapsed"
                 )
-                mail_reason = (
-                    "WARNING ("
-                    f"triggering: {any_triggering}, "
-                    f"failing: {any_failing}"
-                    ")"
-                )
+                mail_reason = "WARNING"
             else:
                 mail_reason = None
                 logger.info(
                     "[report_to_email] Will not send, reason: triggering, but not enough time elapsed"
                 )
+            logger.info(
+                "[report_to_email] Will send email, reason: failing, and enough time elapsed"
+            )
+            mail_reason = "WARNING"
         else:
             if since_last > timedelta(
                 hours=mail_settings.grace_time_not_triggering_hours
             ):
                 logger.info(
-                    "[report_to_email] Will send email, reason: not triggering, but enough time elapsed"
+                    "[report_to_email] Will send email, reason: not failing, but enough time elapsed"
                 )
                 mail_reason = "ALL OK"
             else:
                 mail_reason = None
                 logger.info(
-                    "[report_to_email] Will not send, reason: not triggering, and not enough time elapsed"
+                    "[report_to_email] Will not send, reason: not failing, and not enough time elapsed"
                 )
 
     except Exception as e:
@@ -225,12 +218,7 @@ def report_to_email(
             f"[report_to_email] Cannot read status_file='{status_file}', original error: {e}."
         )
         last_mail_info = LastMailStatus()
-        mail_reason = (
-            "First report ("
-            f"triggering: {any_triggering}, "
-            f"failing: {any_failing}"
-            ")"
-        )
+        mail_reason = f"First report (failing: {any_failing})"
 
     if mail_reason is None:
         logger.info("[report_to_email] Exit.")

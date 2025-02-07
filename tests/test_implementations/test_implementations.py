@@ -1,4 +1,5 @@
 import subprocess
+import psutil
 from fractal_healthcheck.checks.implementations import (
     subprocess_run,
     check_mounts,
@@ -7,9 +8,10 @@ from fractal_healthcheck.checks.implementations import (
     lsof_count,
     count_processes,
     ps_count_with_threads,
-    df,
+    disk_usage,
     memory_usage,
     service_logs,
+    service_is_active,
 )
 
 
@@ -42,15 +44,14 @@ def test_url_json(monkeypatch):
 
     monkeypatch.setattr("urllib3.PoolManager.request", mock_request_404)
     result = url_json("http://example.com/")
-    assert result.success
-    assert result.triggering
+    assert not result.success
     assert "404" in result.log
     assert "error" in result.log
     assert "message" in result.log
 
 
 def test_system_load():
-    result = system_load(max_load=100.0)
+    result = system_load(max_load_fraction=100.0)
     assert result.success
     assert "System load" in result.log
 
@@ -87,19 +88,32 @@ def test_ps_count_with_threads(monkeypatch):
     assert "Number of open processes&threads" in result.log
 
 
-def test_df(tmp_path):
-    with open(tmp_path / "testfile", "w") as f:
-        f.write("test")
-    result = df(mountpoint=tmp_path.as_posix())
-    assert result.success
-    assert "Filesystem" in result.log or "Size" in result.log
+def test_disk_usage_low(monkeypatch):
+    def mock_disk_usage(_):
+        return type("Mock", (), {"percent": 50})
+
+    monkeypatch.setattr(psutil, "disk_usage", mock_disk_usage)
+    result = disk_usage("/mock")
+    assert result.success is True
+    assert "The usage of /mock is 50%, while the threashold is 85%" in result.log
+
+
+def test_disk_usage_high(monkeypatch):
+    def mock_disk_usage(_):
+        return type("Mock", (), {"percent": 90})
+
+    monkeypatch.setattr(psutil, "disk_usage", mock_disk_usage)
+    result = disk_usage("/mock")
+    assert result.success is False
+    assert "The usage of /mock is 90%, while the threashold is 85%" in result.log
 
 
 def test_memory_usage():
     result = memory_usage()
     assert result.success
-    assert "total" in result.log
-    assert "available" in result.log
+    assert "Total memory" in result.log
+    assert "Free memory" in result.log
+    assert "Percent" in result.log
 
 
 def test_check_mounts(tmp_path):
@@ -120,3 +134,28 @@ def test_service_logs():
         target_words=["dbus", "daemon"],
     )
     assert "dbus-daemon" in out.log
+
+
+def test_service_is_active_success(mock_subprocess_run):
+    result = service_is_active(["my-service"])
+    assert result.log == '{"my-service": "active"}'
+    assert result.success is True
+
+
+def test_service_is_active_inactive(mock_subprocess_run):
+    result = service_is_active(["inactive-service"])
+    assert result.log == '{"inactive-service": "inactive"}'
+    assert result.success is False
+
+
+def test_service_is_active_failure(mock_subprocess_run):
+    result = service_is_active(["fail"])
+    assert result.success is False
+    assert result.success is False
+
+
+def test_service_multiple(mock_subprocess_run):
+    result = service_is_active(["service_1", "service_2"])
+    assert result.log == '{"service_1": "active", "service_2": "inactive"}'
+    assert result.success is False
+    assert result.success is False

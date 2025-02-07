@@ -1,26 +1,12 @@
 import json
-import os
 import psutil
 import subprocess
 import logging
 import shlex
-
+from fabric.connection import Connection
 from urllib3.util import Retry
 from urllib3 import PoolManager
 from fractal_healthcheck.checks.CheckResults import CheckResult
-
-
-def failing_result(exception: Exception) -> CheckResult:
-    """
-    To be called when a check call catches an exception:
-    return a CheckResults instance with log=exception
-    """
-    return CheckResult(
-        log="",
-        exception=exception,
-        success=False,
-        triggering=False,
-    )
 
 
 def subprocess_run(command: str) -> CheckResult:
@@ -36,13 +22,13 @@ def subprocess_run(command: str) -> CheckResult:
         )
         return CheckResult(log=res.stdout)
     except Exception as e:
-        return failing_result(exception=e)
+        return CheckResult(exception=e, success=False)
 
 
 def url_json(url: str) -> CheckResult:
     """
     Log the json-parsed output of a request to 'url'
-    Room for enhancement: implement trigger, e.g. matching regex in returned contents
+    Room for enhancement: e.g. matching regex in returned contents
     """
     try:
         retries = Retry(connect=5)
@@ -61,26 +47,22 @@ def url_json(url: str) -> CheckResult:
                 sort_keys=True,
                 indent=2,
             )
-            return CheckResult(log=log, triggering=True)
+            return CheckResult(log=log, success=False)
     except Exception as e:
-        return failing_result(exception=e)
+        return CheckResult(exception=e, success=False)
 
 
-def system_load(max_load: float | None = None) -> CheckResult:
+def system_load(max_load_fraction: float) -> CheckResult:
     """
-    Get system load averages, keep only the 1-minute average
-    Optionally trigger if larger than max_load
-    If max_load is < 0: use os.cpu_count
+    Get system load averages, keep only the 5-minute average
     """
+    load_fraction = psutil.getloadavg()[1] / psutil.cpu_count()
+
     try:
-        load = os.getloadavg()[0]
-        if max_load is None or max_load < 0:
-            max_load = os.cpu_count()
-        triggering = load > max_load
-        log = f"System load: {load}"
-        return CheckResult(log=log, triggering=triggering)
+        log = f"System load: {load_fraction}"
+        return CheckResult(log=log, success=max_load_fraction > load_fraction)
     except Exception as e:
-        return failing_result(exception=e)
+        return CheckResult(exception=e, success=False)
 
 
 def lsof_count() -> CheckResult:
@@ -98,7 +80,7 @@ def lsof_count() -> CheckResult:
         log = f"Number of open files (via lsof): {num_lines}"
         return CheckResult(log=log)
     except Exception as e:
-        return failing_result(exception=e)
+        return CheckResult(exception=e, success=False)
 
 
 def count_processes() -> CheckResult:
@@ -111,7 +93,7 @@ def count_processes() -> CheckResult:
         log = f"Number of processes (via psutil.pids): {nprocesses}"
         return CheckResult(log=log)
     except Exception as e:
-        return failing_result(e)
+        return CheckResult(exception=e, success=False)
 
 
 def ps_count_with_threads() -> CheckResult:
@@ -129,50 +111,49 @@ def ps_count_with_threads() -> CheckResult:
         log = f"Number of open processes&threads (via ps -AL): {num_lines}"
         return CheckResult(log=log)
     except Exception as e:
-        return failing_result(exception=e)
+        return CheckResult(exception=e, success=False)
 
 
-def df(
-    mountpoint: str | None = None,
-    timeout_seconds: int = 60,
+def disk_usage(
+    mountpoint: str,
 ) -> CheckResult:
     """
-    Call 'df' on provided 'mountpoint' (or on all, if no mountpoint is provided)
-
-    TODO: parse output (option for machine-readable output?)
+    Call psutil.disk_usage on provided 'mountpoint'
     """
-    command = "df -hT"
-    if mountpoint is not None:
-        command = f"{command} {mountpoint}"
-
+    max_perc_usage = 85
+    usage_perc = psutil.disk_usage(mountpoint).percent
     try:
-        res = subprocess.run(
-            shlex.split(command),
-            check=True,
-            capture_output=True,
-            timeout=timeout_seconds,
-            encoding="utf-8",
+        return CheckResult(
+            log=f"The usage of {mountpoint} is {usage_perc}%, while the threashold is {max_perc_usage}%",
+            success=max_perc_usage > usage_perc,
         )
-        return CheckResult(log=res.stdout)
     except Exception as e:
-        return failing_result(exception=e)
+        return CheckResult(exception=e, success=False)
 
 
-def memory_usage() -> CheckResult:
+def memory_usage(max_memory_usage: int = 75) -> CheckResult:
     """
     Memory usage, via psutil.virtual_memory
     """
     try:
         mem_usage = psutil.virtual_memory()
-        mem_usage_human = {}
-        for f in mem_usage._fields:
-            if f != "percent":
-                mem_usage_human[f] = psutil._common.bytes2human(getattr(mem_usage, f))
-            else:
-                mem_usage_human[f] = f"{getattr(mem_usage, f)}%"
-        return CheckResult(log=json.dumps(mem_usage_human, indent=2))
+
+        mem_usage_total = round(
+            ((mem_usage.total / 1024) / 1024) / 1024, 2
+        )  # GigaBytes
+        mem_usage_available = round(((mem_usage.available / 1024) / 1024) / 1024, 2)
+        mem_usage_percent = round(mem_usage.percent, 1)
+        log = {
+            "Total memory": f"{mem_usage_total} GB",
+            "Free memory": f"{mem_usage_available} GB",
+            "Percent": f"{mem_usage_percent}%",
+        }
+        return CheckResult(
+            log=f"The memory usage is {mem_usage_percent}%, while the threashold is {max_memory_usage}%\n {json.dumps(log, indent=2)}",
+            success=max_memory_usage > mem_usage_percent,
+        )
     except Exception as e:
-        return failing_result(e)
+        return CheckResult(exception=e, success=False)
 
 
 def check_mounts(mounts: list[str]) -> CheckResult:
@@ -191,7 +172,7 @@ def check_mounts(mounts: list[str]) -> CheckResult:
         log = f"Number of files/folders (via ls {paths}): {num_objs}"
         return CheckResult(log=log)
     except Exception as e:
-        return failing_result(exception=e)
+        return CheckResult(exception=e, success=False)
 
 
 def service_logs(
@@ -226,12 +207,59 @@ def service_logs(
         critical_lines = res2.stdout.strip("\n").split("\n")
         if res2.returncode == 1:
             return CheckResult(
-                log=f"Returncode={res2.returncode} for {cmd=}.",
-                triggering=False,
+                log=f"Returncode={res2.returncode} for {cmd=}.", success=True
             )
         else:
             critical_lines_joined = "\n".join(critical_lines)
             log = f"{target_words=}.\nMatching log lines:\n{critical_lines_joined}"
-            return CheckResult(log=log, triggering=True)
+            return CheckResult(log=log, success=False)
     except Exception as e:
-        return failing_result(exception=e)
+        return CheckResult(exception=e, success=False)
+
+
+def ssh_on_server(username: str, host: str, private_key_path: str) -> CheckResult:
+    try:
+        with Connection(
+            host=host,
+            user=username,
+            forward_agent=False,
+            connect_kwargs={
+                "key_filename": private_key_path,
+                "look_for_keys": False,
+            },
+        ) as connection:
+            res = connection.run("whoami")
+            return CheckResult(
+                log=(
+                    f"Connection to {host} as {username} with pk={private_key_path} is succeed, result: {res}"
+                )
+            )
+    except Exception as e:
+        return CheckResult(
+            exception=e,
+            success=False,
+        )
+
+
+def service_is_active(services: list[str], use_user: bool = False) -> CheckResult:
+    parsed_services = " ".join(services)
+
+    if use_user:
+        cmd = f"systemctl is-active --user {parsed_services}"
+    else:
+        cmd = f"systemctl is-active {parsed_services}"
+    try:
+        logging.info(f"{cmd=}")
+        res = subprocess.run(
+            shlex.split(cmd),
+            capture_output=True,
+            encoding="utf-8",
+        )
+        statuses = res.stdout.split("\n")
+        log = dict(zip(services, statuses))
+        if "inactive" in res.stdout or "failed" in res.stdout:
+            return CheckResult(log=json.dumps(log), success=False)
+        else:
+            return CheckResult(log=json.dumps(log))
+    except Exception as e:
+        return CheckResult(exception=e, success=False)

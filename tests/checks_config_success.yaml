@@ -1,7 +1,8 @@
 checks:
   - name: "System load"
     function_name: system_load
-    max_load: -1
+    kwargs:
+      max_load_fraction: 8
   - name: "Count processes"
     function_name: count_processes
   - name: "Count processes and threads (ps -AL)"
