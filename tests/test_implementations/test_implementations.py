@@ -51,7 +51,7 @@ def test_url_json(monkeypatch):
 
 
 def test_system_load():
-    result = system_load(max_load=100.0)
+    result = system_load(max_load_fraction=100.0)
     assert result.success
     assert "System load" in result.log
 

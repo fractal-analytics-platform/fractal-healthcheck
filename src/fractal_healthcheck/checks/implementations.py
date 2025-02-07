@@ -54,9 +54,7 @@ def url_json(url: str) -> CheckResult:
 
 def system_load(max_load_fraction: float) -> CheckResult:
     """
-    Get system load averages, keep only the 1-minute average
-    Success is False if larger than max_load
-    If max_load is < 0: use os.cpu_count
+    Get system load averages, keep only the 5-minute average
     """
     load_fraction = psutil.getloadavg()[1] / psutil.cpu_count()
 
@@ -126,7 +124,7 @@ def disk_usage(
     usage_perc = psutil.disk_usage(mountpoint).percent
     try:
         return CheckResult(
-            log=f"The usage of {mountpoint} is {usage_perc}%, which is lower than {max_perc_usage}%",
+            log=f"The usage of {mountpoint} is {usage_perc}%, while the threashold is {max_perc_usage}%",
             success=usage_perc > max_perc_usage,
         )
     except Exception as e:
@@ -152,7 +150,7 @@ def memory_usage() -> CheckResult:
             "Percent": f"{mem_usage_percent} GB",
         }
         return CheckResult(
-            log=f"{mem_usage_percent} > {MAX_MEMORY_USAGE}\n {json.dumps(log, indent=2)}",
+            log=f"The memory usage is {mem_usage_percent}%, while the threashold is {MAX_MEMORY_USAGE}%\n {json.dumps(log, indent=2)}",
             success=mem_usage_percent > MAX_MEMORY_USAGE,
         )
     except Exception as e:
@@ -220,21 +218,21 @@ def service_logs(
         return CheckResult(exception=e, success=False)
 
 
-def ssh_on_server(username: str, host: str, pk_path: str) -> CheckResult:
+def ssh_on_server(username: str, host: str, private_key_path: str) -> CheckResult:
     try:
         with Connection(
             host=host,
             user=username,
             forward_agent=False,
             connect_kwargs={
-                "key_filename": pk_path,
+                "key_filename": private_key_path,
                 "look_for_keys": False,
             },
         ) as connection:
             res = connection.run("whoami")
             return CheckResult(
                 log=(
-                    f"Connection to {host} as {username} with pk={pk_path} is succeed, result: {res}"
+                    f"Connection to {host} as {username} with pk={private_key_path} is succeed, result: {res}"
                 )
             )
     except Exception as e:
