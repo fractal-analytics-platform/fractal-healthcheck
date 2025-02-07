@@ -147,7 +147,7 @@ def memory_usage() -> CheckResult:
         log = {
             "Total memory": f"{mem_usage_total} GB",
             "Free memory": f"{mem_usage_available} GB",
-            "Percent": f"{mem_usage_percent}",
+            "Percent": f"{mem_usage_percent}%",
         }
         return CheckResult(
             log=f"The memory usage is {mem_usage_percent}%, while the threashold is {MAX_MEMORY_USAGE}%\n {json.dumps(log, indent=2)}",
