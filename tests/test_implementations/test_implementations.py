@@ -1,3 +1,4 @@
+import json
 import subprocess
 import psutil
 from fractal_healthcheck.checks.implementations import (
@@ -90,22 +91,22 @@ def test_ps_count_with_threads(monkeypatch):
 
 def test_disk_usage_low(monkeypatch):
     def mock_disk_usage(_):
-        return type("Mock", (), {"percent": 50})
+        return type("Mock", (), {"percent": 50, "total": 90})
 
     monkeypatch.setattr(psutil, "disk_usage", mock_disk_usage)
     result = disk_usage("/mock")
     assert result.success is True
-    assert "The usage of /mock is 50%, while the threashold is 85%" in result.log
+    assert "The usage of /mock is 50%, while the threshold is 85%" in result.log
 
 
 def test_disk_usage_high(monkeypatch):
     def mock_disk_usage(_):
-        return type("Mock", (), {"percent": 90})
+        return type("Mock", (), {"percent": 90, "total": 90})
 
     monkeypatch.setattr(psutil, "disk_usage", mock_disk_usage)
     result = disk_usage("/mock")
     assert result.success is False
-    assert "The usage of /mock is 90%, while the threashold is 85%" in result.log
+    assert "The usage of /mock is 90%, while the threshold is 85%" in result.log
 
 
 def test_memory_usage():
@@ -138,24 +139,24 @@ def test_service_logs():
 
 def test_service_is_active_success(mock_subprocess_run):
     result = service_is_active(["my-service"])
-    assert result.log == '{"my-service": "active"}'
+    assert result.log == json.dumps({"my-service": "active"}, indent=2)
     assert result.success is True
 
 
 def test_service_is_active_inactive(mock_subprocess_run):
     result = service_is_active(["inactive-service"])
-    assert result.log == '{"inactive-service": "inactive"}'
+    assert result.log == json.dumps({"inactive-service": "inactive"}, indent=2)
     assert result.success is False
 
 
 def test_service_is_active_failure(mock_subprocess_run):
     result = service_is_active(["fail"])
     assert result.success is False
-    assert result.success is False
 
 
 def test_service_multiple(mock_subprocess_run):
     result = service_is_active(["service_1", "service_2"])
-    assert result.log == '{"service_1": "active", "service_2": "inactive"}'
-    assert result.success is False
+    assert result.log == json.dumps(
+        {"service_1": "active", "service_2": "inactive"}, indent=2
+    )
     assert result.success is False
