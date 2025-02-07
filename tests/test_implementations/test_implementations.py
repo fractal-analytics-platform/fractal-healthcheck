@@ -1,5 +1,4 @@
 import subprocess
-import paramiko
 import psutil
 from fractal_healthcheck.checks.implementations import (
     subprocess_run,
@@ -12,7 +11,6 @@ from fractal_healthcheck.checks.implementations import (
     disk_usage,
     memory_usage,
     service_logs,
-    ssh_on_server,
     service_is_active,
 )
 
