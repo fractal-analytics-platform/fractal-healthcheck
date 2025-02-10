@@ -9,6 +9,26 @@ checks:
     function_name: ps_count_with_threads
   - name: "Memory usage"
     function_name: memory_usage
+  - name: "Dick usage"
+    function_name: disk_usage
+    kwargs:
+      mountpoint: "/"
+  - name: "Check mounts"
+    function_name: check_mounts
+    kwargs:
+      mounts: ["/tmp"]
+  - name: "SSH on server"
+    function_name: ssh_on_server
+    kwargs:
+      host: "localhost"
+      username: "user"
+      port: 2222
+      password: "pass"
+  - name: "Service is active"
+    function_name: service_is_active
+    kwargs:
+      services: ["dbus.service"]
+
     
 email-config:
   smtp_server: "localhost"
