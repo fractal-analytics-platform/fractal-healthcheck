@@ -1,3 +1,7 @@
+# 0.1.11
+
+* Handle user/password login on `ssh_on_server` 
+
 # 0.1.10
 
 * Improve `log` messages (\#38).
