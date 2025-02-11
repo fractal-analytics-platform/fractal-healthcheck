@@ -17,6 +17,15 @@ jobs:
 
     services:
 
+      openssh:
+        image: linuxserver/openssh-server
+        ports: 
+          - 2222:2222
+        env:
+          PASSWORD_ACCESS: true 
+          USER_PASSWORD: "pass" 
+          USER_NAME: "user"
+
       mailpit:
         image: axllent/mailpit
         ports:

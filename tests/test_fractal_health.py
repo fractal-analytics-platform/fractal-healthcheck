@@ -53,7 +53,7 @@ def test_successful_run(tmp_path: Path, caplog):
 
     with report_file.open("r") as f:
         report = f.read()
-    assert "Total number of checks: 4" in report
+    assert "Total number of checks: 8" in report
     assert "Number of failed checks: 0" in report
     assert "Email sent" in caplog.text
 
