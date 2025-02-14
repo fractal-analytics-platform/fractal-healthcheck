@@ -12,6 +12,7 @@ docker run \
     linuxserver/openssh-server \
 &&
 docker run \
+    --rm \
     --name=mailpit \
     -p 8025:8025 \
     -p 1025:1025 \
