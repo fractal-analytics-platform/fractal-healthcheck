@@ -1,3 +1,7 @@
+# 0.1.11
+
+* Fix bug in grace-time logic (\#41).
+
 # 0.1.10
 
 * Improve `log` messages (\#38).
