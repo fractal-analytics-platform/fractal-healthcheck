@@ -195,10 +195,6 @@ def report_to_email(
                 logger.info(
                     "[report_to_email] Will not send, reason: triggering, but not enough time elapsed"
                 )
-            logger.info(
-                "[report_to_email] Will send email, reason: failing, and enough time elapsed"
-            )
-            mail_reason = "WARNING"
         else:
             if since_last > timedelta(
                 hours=mail_settings.grace_time_not_triggering_hours
