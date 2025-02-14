@@ -1,5 +1,7 @@
 # 0.1.11
 
+* Handle user/password login on `ssh_on_server` (\#39).
+* Remove unit tests (\#39).
 * Fix bug in grace-time logic (\#41).
 
 # 0.1.10

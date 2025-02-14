@@ -3,6 +3,7 @@ import psutil
 import subprocess
 import logging
 import shlex
+from typing import Optional
 from fabric.connection import Connection
 from urllib3.util import Retry
 from urllib3 import PoolManager
@@ -221,22 +222,43 @@ def service_logs(
         return CheckResult(exception=e, success=False)
 
 
-def ssh_on_server(username: str, host: str, private_key_path: str) -> CheckResult:
-    try:
-        with Connection(
-            host=host,
-            user=username,
-            forward_agent=False,
-            connect_kwargs={
+def ssh_on_server(
+    username: str,
+    host: str,
+    password: Optional[str] = None,
+    private_key_path: Optional[str] = None,
+    port: int = 22,
+) -> CheckResult:
+    connection = Connection(
+        host=host,
+        user=username,
+        port=port,
+        forward_agent=False,
+    )
+    if password is not None:
+        connection.connect_kwargs.update({"password": password})
+    elif private_key_path is not None:
+        connection.connect_kwargs.update(
+            {
                 "key_filename": private_key_path,
                 "look_for_keys": False,
-            },
-        ) as connection:
-            res = connection.run("whoami")
+            }
+        )
+    elif password is not None and private_key_path is not None:
+        return CheckResult(
+            log="Password and private_key_path have a value, remove one of them",
+            success=False,
+        )
+    elif password is None and private_key_path is None:
+        return CheckResult(
+            log="Password and private_key_path have not a value, choose one of them",
+            success=False,
+        )
+    try:
+        with connection as c:
+            res = c.run("whoami")
             return CheckResult(
-                log=(
-                    f"Connection to {host} as {username} with private_key={private_key_path} result:\n{res.stdout}"
-                )
+                log=f"Connection to {host} as {username} with private_key={private_key_path} result:\n{res.stdout}",
             )
     except Exception as e:
         return CheckResult(
