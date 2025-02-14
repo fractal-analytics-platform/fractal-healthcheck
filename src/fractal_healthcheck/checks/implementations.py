@@ -257,9 +257,6 @@ def ssh_on_server(
     try:
         with connection as c:
             res = c.run("whoami")
-            from devtools import debug
-
-            debug(res)
             return CheckResult(
                 log=f"Connection to {host} as {username} with private_key={private_key_path} result:\n{res.stdout}",
             )

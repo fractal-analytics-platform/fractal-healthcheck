@@ -9,7 +9,7 @@ checks:
     function_name: ps_count_with_threads
   - name: "Memory usage"
     function_name: memory_usage
-  - name: "Dick usage"
+  - name: "Disk usage"
     function_name: disk_usage
     kwargs:
       mountpoint: "/"
