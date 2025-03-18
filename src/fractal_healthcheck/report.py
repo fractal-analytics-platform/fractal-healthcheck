@@ -76,7 +76,11 @@ class LastMailStatus:
         return self
 
 
-def prepare_report(check_suite: CheckSuite, checks_runtime: float) -> str:
+def prepare_report(
+    check_suite: CheckSuite,
+    checks_runtime: float,
+    instance_name: str | None,
+) -> str:
     """
     Format the results in a CheckSuite instance to a string.
     It takes as argument also the time needed to run the checks.
@@ -96,6 +100,7 @@ def prepare_report(check_suite: CheckSuite, checks_runtime: float) -> str:
     remaining = check_suite.get_non_failing_results()
     summary = (
         f"# Summary\n\n"
+        f"Fractal instance: {instance_name}\n"
         f"Report timestamp: {datetime.now(tz=timezone.utc)}\n"
         f"Fractal-healthcheck version: {fractal_healthcheck.__VERSION__}\n"
         f"Total number of checks: {len(check_suite.checks)}\n"

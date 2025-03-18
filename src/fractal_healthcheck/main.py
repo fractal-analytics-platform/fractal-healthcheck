@@ -64,6 +64,9 @@ def main(
     checks_suite = load_check_suite(config_file)
     if send_mail:
         email_config = load_email_config(config_file)
+        instance_name = email_config.instance_name
+    else:
+        instance_name = None
 
     # Run checks and get the checks' execution time
     t_start = time.time()
@@ -71,7 +74,11 @@ def main(
     checks_runtime = round(time.time() - t_start, 2)
 
     # Prepare report
-    report = prepare_report(checks_suite, checks_runtime=checks_runtime)
+    report = prepare_report(
+        checks_suite,
+        checks_runtime=checks_runtime,
+        instance_name=instance_name,
+    )
 
     # Write report to file
     if output_file is not None:
