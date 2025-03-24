@@ -1,3 +1,7 @@
+# 0.1.12
+
+* Include instance name in report.
+
 # 0.1.11
 
 * Handle user/password login on `ssh_on_server` (\#39).
