@@ -37,6 +37,9 @@ checks:
     kwargs:
       mounts: ["/data/shares"]
 
+  - name: "SSH connections"
+    function_name: lsof_ssh
+
 email-config:
   status_file: "./status.yaml"
   recipients: ["example@example.com", ]

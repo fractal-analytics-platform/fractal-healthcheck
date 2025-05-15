@@ -84,6 +84,29 @@ def lsof_count() -> CheckResult:
         return CheckResult(exception=e, success=False)
 
 
+def lsof_ssh(max_ssh_lines: int = 32) -> CheckResult:
+    """
+    Count and print ssh entries in `lsof -i`
+    """
+    try:
+        res = subprocess.run(
+            shlex.split("lsof -i"),
+            check=True,
+            capture_output=True,
+            encoding="utf-8",
+        )
+        all_lines = res.stdout.strip("\n").split("\n")
+        ssh_lines = [line for line in all_lines if "ssh" in line.lower()]
+        log = "\n".join(ssh_lines)
+        if len(ssh_lines) > max_ssh_lines:
+            log = f"{log}\nNumber of lines exceeds {max_ssh_lines=}."
+            return CheckResult(log=log, success=False)
+        else:
+            return CheckResult(log=log)
+    except Exception as e:
+        return CheckResult(exception=e, success=False)
+
+
 def count_processes() -> CheckResult:
     """
     Process count, via psutil.pids

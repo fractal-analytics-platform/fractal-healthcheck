@@ -1,3 +1,7 @@
+# 0.1.13
+
+* Include `lsof_ssh` check (\#45).
+
 # 0.1.12
 
 * Include instance name in report.
