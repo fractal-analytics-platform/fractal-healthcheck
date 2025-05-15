@@ -28,6 +28,10 @@ checks:
     function_name: service_is_active
     kwargs:
       services: ["dbus.service"]
+  - name: "SSH connections"
+    function_name: lsof_ssh
+    kwargs:
+      max_ssh_lines: 100
 
     
 email-config:
