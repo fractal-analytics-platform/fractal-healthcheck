@@ -45,6 +45,8 @@ checks:
       dbname: fractal-test
       user: postgres
       password: postgres
+      #host: /var/run/postgresql/
+
 
 email-config:
   status_file: "./status.yaml"
