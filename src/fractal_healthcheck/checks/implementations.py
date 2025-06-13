@@ -314,6 +314,30 @@ def service_is_active(services: list[str], use_user: bool = False) -> CheckResul
         return CheckResult(exception=e, success=False)
 
 
+
+def create_table(headers: list, rows: list, column_widths: list) -> str:
+    """
+    Create a simple table with headers and rows.
+    Args:
+        headers: List of column header names
+        rows: List of lists containing row data
+        column_widths: List of integer widths for each column
+    Returns:
+        String containing the formatted table
+    """
+    lines = []
+    header_row = " | ".join(
+        str(header).ljust(width) for header, width in zip(headers, column_widths)
+    )
+    lines.append(header_row)
+    lines.append("-" * len(header_row))
+    for row in rows:
+        row_str = " | ".join(
+            str(cell or "-").ljust(width) for cell, width in zip(row, column_widths)
+        )
+        lines.append(row_str)
+    return "\n".join(lines)
+
 def check_pg_last_autovacuum_autoanalyze(
     dbname: str,
     user: Optional[str] = None,
@@ -372,17 +396,29 @@ def check_pg_last_autovacuum_autoanalyze(
         rows = cursor.fetchall()
 
         logs.append("== Autovacuum/Autoanalyze Status ==")
-        for row in rows:
-            log = (
-                f"Table: {row[0]}\n"
-                f"  Live tuples: {row[1]}\n"
-                f"  Dead tuples: {row[2]}\n"
-                f"  Last autovacuum: {row[3]}\n"
-                f"  Last autoanalyze: {row[4]}\n"
-                f"  Effective vacuum threshold: {int(row[5])}\n"
-                f"  Effective analyze threshold: {int(row[6])}\n"
-            )
-            logs.append(log)
+        headers = [
+            "Table",
+            "Live Tuples",
+            "Dead Tuples",
+            "Last Autovacuum",
+            "Last Autoanalyze",
+            "Vacuum Threshold",
+            "Analyze Threshold",
+        ]
+        column_widths = [30, 12, 12, 22, 22, 18, 18]
+        table_rows = [
+            [
+                row[0],
+                row[1],
+                row[2],
+                str(row[3]),
+                str(row[4]),
+                row[5],
+                row[6],
+            ]
+            for row in rows
+        ]
+        logs.append(create_table(headers, table_rows, column_widths))
 
         # Second query: table size and indexes size.
         # Just a subset of all tables/pk/ix
@@ -408,21 +444,19 @@ def check_pg_last_autovacuum_autoanalyze(
             )
         ORDER BY
             pg_total_relation_size(c.oid) DESC;
-
         """
 
         cursor.execute(table_size_query)
         rows = cursor.fetchall()
 
         logs.append("\n== Table Sizes ==")
-        for row in rows:
-            log = (
-                f"Table: {row[0]}\n"
-                f"  Table size: {row[1]}\n"
-                f"  Total size: {row[2]}\n"
-                f"  Estimated row count: {row[3]}\n"
-            )
-            logs.append(log)
+        headers = ["Table", "Table Size", "Total Size", "Estimated Rows"]
+        column_widths = [35, 12, 12, 16]
+        table_rows = [
+            [row[0], row[1], row[2], row[3]] for row in rows
+        ]
+        logs.append(create_table(headers, table_rows, column_widths))
+
         cursor.close()
         connection.close()
 

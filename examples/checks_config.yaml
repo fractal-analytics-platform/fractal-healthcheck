@@ -1,5 +1,4 @@
 checks:
-
   - name: "whoami command"
     function_name: subprocess_run
     kwargs:
@@ -40,9 +39,16 @@ checks:
   - name: "SSH connections"
     function_name: lsof_ssh
 
+  - name: "Postgres check"
+    function_name: check_pg_last_autovacuum_autoanalyze
+    kwargs:
+      dbname: fractal-test
+      user: postgres
+      password: postgres
+
 email-config:
   status_file: "./status.yaml"
-  recipients: ["example@example.com", ]
+  recipients: ["example@example.com"]
   grace_time_not_triggering_hours: 72
   grace_time_triggering_hours: 4
   smtp_server: "localhost"
