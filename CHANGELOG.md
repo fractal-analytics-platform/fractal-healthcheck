@@ -1,3 +1,7 @@
+# 0.1.14
+
+* Include monitoring of postgresql database (\#48).
+
 # 0.1.13
 
 * Include `lsof_ssh` check (\#45).
