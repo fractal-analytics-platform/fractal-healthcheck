@@ -314,7 +314,6 @@ def service_is_active(services: list[str], use_user: bool = False) -> CheckResul
         return CheckResult(exception=e, success=False)
 
 
-
 def create_table(headers: list, rows: list, column_widths: list) -> str:
     """
     Create a simple table with headers and rows.
@@ -337,6 +336,7 @@ def create_table(headers: list, rows: list, column_widths: list) -> str:
         )
         lines.append(row_str)
     return "\n".join(lines)
+
 
 def check_pg_last_autovacuum_autoanalyze(
     dbname: str,
@@ -402,10 +402,10 @@ def check_pg_last_autovacuum_autoanalyze(
             "Dead Tuples",
             "Last Autovacuum",
             "Last Autoanalyze",
-            "Vacuum Threshold",
-            "Analyze Threshold",
+            "Vacuum Thresh.",
+            "Analyze Thresh.",
         ]
-        column_widths = [30, 12, 12, 22, 22, 18, 18]
+        column_widths = [34, 11, 11, 32, 32, 14, 14]
         table_rows = [
             [
                 row[0],
@@ -435,15 +435,10 @@ def check_pg_last_autovacuum_autoanalyze(
         LEFT JOIN
             pg_stat_user_tables s ON s.relid = c.oid
         WHERE
-            c.relname IN (
-                'ix_historyimagecache_dataset_id',
-                'ix_historyimagecache_workflowtask_id',
-                'pk_historyimagecache',
-                'historyimagecache',
-                'historyunit'
-            )
+                (c.relkind = 'r' OR c.relkind = 'i') AND n.nspname = 'public'
         ORDER BY
-            pg_total_relation_size(c.oid) DESC;
+            pg_total_relation_size(c.oid) DESC
+        LIMIT 20;
         """
 
         cursor.execute(table_size_query)
@@ -451,10 +446,8 @@ def check_pg_last_autovacuum_autoanalyze(
 
         logs.append("\n== Table Sizes ==")
         headers = ["Table", "Table Size", "Total Size", "Estimated Rows"]
-        column_widths = [35, 12, 12, 16]
-        table_rows = [
-            [row[0], row[1], row[2], row[3]] for row in rows
-        ]
+        column_widths = [38, 12, 12, 16]
+        table_rows = [[row[0], row[1], row[2], row[3]] for row in rows]
         logs.append(create_table(headers, table_rows, column_widths))
 
         cursor.close()
