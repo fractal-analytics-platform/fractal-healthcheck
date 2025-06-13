@@ -338,7 +338,7 @@ def create_table(headers: list, rows: list, column_widths: list) -> str:
     return "\n".join(lines)
 
 
-def check_pg_last_autovacuum_autoanalyze(
+def postgresql_db_info(
     dbname: str,
     user: Optional[str] = None,
     password: Optional[str] = None,
@@ -349,7 +349,7 @@ def check_pg_last_autovacuum_autoanalyze(
     Query a PostgreSQL database to check:
     - Last autovacuum and autoanalyze times
     - Autovacuum/analyze thresholds
-    - Table sizes of a subset
+    - Table sizes
     """
     import psycopg
 

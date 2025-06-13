@@ -40,7 +40,7 @@ checks:
     function_name: lsof_ssh
 
   - name: "Postgres check"
-    function_name: check_pg_last_autovacuum_autoanalyze
+    function_name: postgresql_db_info
     kwargs:
       dbname: fractal-test
       user: postgres
