@@ -1,6 +1,6 @@
 [project]
 name = "fractal-healthcheck"
-version = "0.1.12"
+version = "0.1.14"
 authors = [
   {name = "Alberto Pastorutti", email = "alberto.pastorutti@exact-lab.it"},
   {name = "Tommaso Comparin", email = "tommaso.comparin@exact-lab.it"},
@@ -17,6 +17,7 @@ dependencies = [
     "urllib3 >= 2.3.0, < 3.0.0",
     "paramiko >= 3.5.1, < 4.0.0",
     "fabric >= 3.2.2, < 4.0.0",
+    "psycopg[binary] (>=3.2.9,<4.0.0)",
 ]
 [project.optional-dependencies]
 dev = [
@@ -35,7 +36,7 @@ build-backend = "setuptools.build_meta"
 fractal-health = "fractal_healthcheck.main:main"
 
 [tool.bumpver]
-current_version = "0.1.12"
+current_version = "0.1.14"
 version_pattern = "MAJOR.MINOR.PATCH[PYTAGNUM]"
 commit_message = "bump version {old_version} -> {new_version}"
 commit = true
