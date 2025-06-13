@@ -313,14 +313,6 @@ def service_is_active(services: list[str], use_user: bool = False) -> CheckResul
     except Exception as e:
         return CheckResult(exception=e, success=False)
 
-from typing import Optional
-from dataclasses import dataclass
-
-@dataclass
-class CheckResult:
-    log: str
-    success: bool
-    exception: Optional[Exception] = None
 
 def check_pg_last_autovacuum_autoanalyze(
     dbname: str,
