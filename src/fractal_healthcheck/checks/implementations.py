@@ -378,8 +378,8 @@ def check_pg_last_autovacuum_autoanalyze(
                 f"  Dead tuples: {row[2]}\n"
                 f"  Last autovacuum: {row[3]}\n"
                 f"  Last autoanalyze: {row[4]}\n"
-                f"  Effective vacuum threshold: {int(row[9])}\n"
-                f"  Effective analyze threshold: {int(row[10])}\n"
+                f"  Effective vacuum threshold: {int(row[5])}\n"
+                f"  Effective analyze threshold: {int(row[6])}\n"
             )
             logs.append(log)
 
