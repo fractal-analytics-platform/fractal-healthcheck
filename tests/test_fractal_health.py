@@ -3,7 +3,8 @@ import requests
 import shutil
 from click.testing import CliRunner
 from pathlib import Path
-
+from fractal_healthcheck.checks.implementations import check_pg_last_autovacuum_autoanalyze
+import psycopg
 testspath = Path(__file__).parent
 
 
@@ -99,3 +100,63 @@ def test_failing_run(tmp_path: Path, caplog):
     assert "Last report email sent on" in caplog.text
     assert "Email sent" in caplog.text
     assert _current_num_messages() == initial_num_messages + 2
+
+import pytest
+
+@pytest.fixture
+def mock_pg_connection(monkeypatch):
+    # Mocked rows for autovacuum query
+    autovacuum_rows = [
+        (
+            "test_table", 1000, 50, "2025-06-10 12:00:00", "2025-06-10 12:30:00",
+            50, 0.2, 50, 0.1, 250.0, 150.0
+        )
+    ]
+
+    # Mocked rows for table size query
+    size_rows = [
+        ("test_table", "64 kB", "128 kB", 1000)
+    ]
+
+    # Mock cursor with side-effected execute()
+    class MockCursor:
+        def __init__(self):
+            self._calls = []
+
+        def execute(self, query):
+            self._calls.append(query)
+            if "last_autovacuum" in query:
+                self._result = autovacuum_rows
+            elif "pg_total_relation_size" in query:
+                self._result = size_rows
+            else:
+                self._result = []
+
+        def fetchall(self):
+            return self._result
+
+        def close(self):
+            pass
+
+    class MockConnection:
+        def cursor(self):
+            return MockCursor()
+
+        def close(self):
+            pass
+
+    def mock_connect(**kwargs):
+        return MockConnection()
+
+    monkeypatch.setattr("psycopg.connect", mock_connect)
+
+# Now the actual test
+def test_check_pg_last_autovacuum_autoanalyze_success(mock_pg_connection):
+    result = check_pg_last_autovacuum_autoanalyze(
+        dbname="testdb", user="testuser", password="testpass", host="localhost", port=5432
+    )
+
+    assert result.success is True
+    assert "Table: test_table" in result.log
+    assert "Last autovacuum: 2025-06-10 12:00:00" in result.log
+    assert "Table size: 64 kB" in result.log

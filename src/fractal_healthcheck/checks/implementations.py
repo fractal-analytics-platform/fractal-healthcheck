@@ -312,3 +312,131 @@ def service_is_active(services: list[str], use_user: bool = False) -> CheckResul
             return CheckResult(log=json.dumps(log, indent=2))
     except Exception as e:
         return CheckResult(exception=e, success=False)
+
+from typing import Optional
+from dataclasses import dataclass
+
+@dataclass
+class CheckResult:
+    log: str
+    success: bool
+    exception: Optional[Exception] = None
+
+def check_pg_last_autovacuum_autoanalyze(
+    dbname: str,
+    user: Optional[str] = None,
+    password: Optional[str] = None,
+    host: str = "localhost",
+    port: int = 5432,
+) -> CheckResult:
+    """
+    Query a PostgreSQL database to check:
+    - Last autovacuum and autoanalyze times
+    - Autovacuum/analyze thresholds
+    - Table sizes of a subset
+    """
+    import psycopg
+
+    try:
+        conn_params = {
+            "dbname": dbname,
+            "user": user,
+            "password": password,
+            "host": host,
+            "port": port,
+        }
+        conn_params = {k: v for k, v in conn_params.items() if v is not None}
+
+        connection = psycopg.connect(**conn_params)
+        cursor = connection.cursor()
+
+        logs = []
+
+        # First query: autovacuum and autoanalyze status.
+        # c.relkin = 'r' means just Regular table (not indexes, not toast ecc.)
+        # n.nspname = 'public' means just public tables, not postgres/system tables
+        autovacuum_query = """
+            SELECT
+                c.relname AS table,
+                s.n_live_tup,
+                s.n_dead_tup,
+                s.last_autovacuum,
+                s.last_autoanalyze,
+                current_setting('autovacuum_vacuum_threshold') AS vacuum_threshold,
+                current_setting('autovacuum_analyze_threshold') AS analyze_threshold
+            FROM
+                pg_class c
+            JOIN
+                pg_namespace n ON n.oid = c.relnamespace
+            LEFT JOIN
+                pg_stat_user_tables s ON s.relid = c.oid
+            WHERE
+                c.relkind = 'r' AND n.nspname = 'public'
+            ORDER BY
+                s.last_autovacuum DESC NULLS LAST;
+        """
+
+        cursor.execute(autovacuum_query)
+        rows = cursor.fetchall()
+        logs.append("== Autovacuum/Autoanalyze Status ==")
+        for row in rows:
+            log = (
+                f"Table: {row[0]}\n"
+                f"  Live tuples: {row[1]}\n"
+                f"  Dead tuples: {row[2]}\n"
+                f"  Last autovacuum: {row[3]}\n"
+                f"  Last autoanalyze: {row[4]}\n"
+                f"  Effective vacuum threshold: {int(row[9])}\n"
+                f"  Effective analyze threshold: {int(row[10])}\n"
+            )
+            logs.append(log)
+
+
+        # Second query: table size and indexes size.
+        # Just a subset of all tables/pk/ix
+        table_size_query = """
+        SELECT
+            c.relname AS table_name,
+            pg_size_pretty(pg_table_size(c.oid)) AS table_size,
+            pg_size_pretty(pg_total_relation_size(c.oid)) AS total_size,
+            s.n_live_tup AS approx_row_count
+        FROM
+            pg_class c
+        JOIN
+            pg_namespace n ON n.oid = c.relnamespace
+        LEFT JOIN
+            pg_stat_user_tables s ON s.relid = c.oid
+        WHERE
+            c.relname IN (
+                'ix_historyimagecache_dataset_id',
+                'ix_historyimagecache_workflowtask_id',
+                'pk_historyimagecache',
+                'historyimagecache',
+                'historyunit'
+            )
+        ORDER BY
+            pg_total_relation_size(c.oid) DESC;
+
+        """
+
+        cursor.execute(table_size_query)
+        rows = cursor.fetchall()
+        logs.append("\n== Table Sizes ==")
+        for row in rows:
+            log = (
+                f"Table: {row[0]}\n"
+                f"  Table size: {row[1]}\n"
+                f"  Total size: {row[2]}\n"
+                f"  Estimated row count: {row[3]}\n"
+            )
+            logs.append(log)
+        cursor.close()
+        connection.close()
+
+        return CheckResult(
+            log="\n".join(logs),
+            success=True,
+        )
+
+    except Exception as e:
+        return CheckResult(log="", success=False, exception=e)
