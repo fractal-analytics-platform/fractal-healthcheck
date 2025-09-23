@@ -28,8 +28,7 @@ def subprocess_run(command: str) -> CheckResult:
 
 def url_json(url: str) -> CheckResult:
     """
-    Log the json-parsed output of a request to 'url'
-    Room for enhancement: e.g. matching regex in returned contents
+    Log the json-parsed output of a request to 'url'.
     """
     try:
         retries = Retry(connect=5)
@@ -53,7 +52,7 @@ def url_json(url: str) -> CheckResult:
             return CheckResult(log=log, success=False)
     except Exception as e:
         log = f"Response body:\n{response_data}\nOriginal error:\n{str(e)}"
-        return CheckResult(exception=log, success=False)
+        return CheckResult(log=log, success=False)
 
 
 def system_load(max_load_fraction: float = 0.7) -> CheckResult:
