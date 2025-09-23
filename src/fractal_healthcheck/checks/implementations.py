@@ -50,7 +50,13 @@ def url_json(url: str) -> CheckResult:
             )
             return CheckResult(log=log, success=False)
     except Exception as e:
-        return CheckResult(exception=e, success=False)
+        log = (
+            "Response body:\n"
+            f"{response.data.decode('utf-8')}\n"
+            "Original error:\n"
+            f"{str(e)}"
+        )
+        return CheckResult(log=log, success=False)
 
 
 def system_load(max_load_fraction: float = 0.7) -> CheckResult:
