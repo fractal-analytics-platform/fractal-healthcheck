@@ -1,3 +1,7 @@
+# Unrelased
+
+* Bump dependencies.
+
 # 0.1.15
 
 * Improve logging for URL-JSON check (\#50).
