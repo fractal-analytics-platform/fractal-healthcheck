@@ -34,29 +34,26 @@ def url_json(url: str) -> CheckResult:
     try:
         retries = Retry(connect=5)
         http = PoolManager(retries=retries)
+        response_data = None
         response = http.request("GET", url)
+        response_data = response.data.decode("utf-8")
         if response.status == 200:
-            data = json.loads(response.data.decode("utf-8"))
+            data = json.loads(response_data)
             log = json.dumps(data, sort_keys=True, indent=2)
             return CheckResult(log=log)
         else:
             log = json.dumps(
                 dict(
                     status=response.status,
-                    data=response.data.decode("utf-8"),
+                    data=response_data,
                 ),
                 sort_keys=True,
                 indent=2,
             )
             return CheckResult(log=log, success=False)
     except Exception as e:
-        log = (
-            "Response body:\n"
-            f"{response.data.decode('utf-8')}\n"
-            "Original error:\n"
-            f"{str(e)}"
-        )
-        return CheckResult(log=log, success=False)
+        log = f"Response body:\n{response_data}\nOriginal error:\n{str(e)}"
+        return CheckResult(exception=log, success=False)
 
 
 def system_load(max_load_fraction: float = 0.7) -> CheckResult:
