@@ -28,29 +28,31 @@ def subprocess_run(command: str) -> CheckResult:
 
 def url_json(url: str) -> CheckResult:
     """
-    Log the json-parsed output of a request to 'url'
-    Room for enhancement: e.g. matching regex in returned contents
+    Log the json-parsed output of a request to 'url'.
     """
     try:
         retries = Retry(connect=5)
         http = PoolManager(retries=retries)
+        response_data = None
         response = http.request("GET", url)
+        response_data = response.data.decode("utf-8")
         if response.status == 200:
-            data = json.loads(response.data.decode("utf-8"))
+            data = json.loads(response_data)
             log = json.dumps(data, sort_keys=True, indent=2)
             return CheckResult(log=log)
         else:
             log = json.dumps(
                 dict(
                     status=response.status,
-                    data=response.data.decode("utf-8"),
+                    data=response_data,
                 ),
                 sort_keys=True,
                 indent=2,
             )
             return CheckResult(log=log, success=False)
     except Exception as e:
-        return CheckResult(exception=e, success=False)
+        log = f"Response body:\n{response_data}\nOriginal error:\n{str(e)}"
+        return CheckResult(log=log, success=False)
 
 
 def system_load(max_load_fraction: float = 0.7) -> CheckResult:

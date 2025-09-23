@@ -172,7 +172,3 @@ def test_check_postgresql_db_info(mock_pg_connection):
     )
 
     assert result.success is True
-    # expected_autovacuum_row = (
-    #    "test_table                          | 1000         | 50           | 2025-06-10 12:00:00   | 2025-06-10 12:30:00   | 50                 | 50                 "
-    # )
-    # assert expected_autovacuum_row in result.log
