@@ -1,5 +1,6 @@
-# Unrelased
+# 0.1.16
 
+* Add `streamlit_alive` check.
 * Bump dependencies.
 
 # 0.1.15
