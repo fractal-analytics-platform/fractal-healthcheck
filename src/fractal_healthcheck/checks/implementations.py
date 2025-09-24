@@ -55,6 +55,23 @@ def url_json(url: str) -> CheckResult:
         return CheckResult(log=log, success=False)
 
 
+def streamlit_alive(streamlit_app_url: str) -> CheckResult:
+    try:
+        http = PoolManager()
+        if streamlit_app_url.endswith("/"):
+            streamlit_app_url = streamlit_app_url[:-1]
+        url = f"{streamlit_app_url}/_stcore/health"
+        response = http.request("GET", url)
+        if response.status == 200:
+            response_body = response.data.decode("utf-8")
+            return CheckResult(log=f"Request to {url=}: {response_body=}")
+        else:
+            log = f"{response.status=} for '{url}'."
+            return CheckResult(log=log, success=False)
+    except Exception as e:
+        return CheckResult(exception=e, success=False)
+
+
 def system_load(max_load_fraction: float = 0.7) -> CheckResult:
     """
     Get system load averages, keep only the 5-minute average
