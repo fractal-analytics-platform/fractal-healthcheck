@@ -203,10 +203,19 @@ def memory_usage(max_memory_usage: int = 75) -> CheckResult:
         return CheckResult(exception=e, success=False)
 
 
-def check_mounts(mounts: list[str]) -> CheckResult:
+def check_mounts(
+    mounts: list[str],
+    timeout_seconds: int = 600,
+) -> CheckResult:
     """
     Check the status of the mounted folders
     """
+    # Always add a trailing slash, so that when the mountpoint is a broken link
+    # we get a non-0 exit code.
+    for ind, mount in enumerate(mounts):
+        if not mount.endswith("/"):
+            mounts[ind] = f"{mount}/"
+
     try:
         paths = " ".join(mounts)
         res = subprocess.run(
@@ -214,6 +223,7 @@ def check_mounts(mounts: list[str]) -> CheckResult:
             check=True,
             capture_output=True,
             encoding="utf-8",
+            timeout=timeout_seconds,
         )
         num_objs = len(res.stdout.strip("\n").split("\n"))
         log = f"Number of files/folders (via ls {paths}): {num_objs}"
