@@ -1,3 +1,7 @@
+# 0.1.17
+
+* Improve `check_mounts`, with trailing slashes and timeout.
+
 # 0.1.16
 
 * Add `streamlit_alive` check.
