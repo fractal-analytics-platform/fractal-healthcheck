@@ -1,3 +1,7 @@
+# 0.1.18
+
+* Display failed checks first.
+
 # 0.1.17
 
 * Improve `check_mounts`, with trailing slashes and timeout.
