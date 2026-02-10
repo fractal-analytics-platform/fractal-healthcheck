@@ -121,7 +121,14 @@ def prepare_report(
     )
 
     report = "# Detailed report\n\n"
-    for name, result in check_suite.get_results().items():
+    for name, result in check_suite.get_failing_results().items():
+        report += (
+            f"Check: {name}\n"
+            f"Status: {result.status}\n"
+            f"Logs:\n{textwrap.indent(result.full_log, '> ')}\n"
+            "----\n\n"
+        )
+    for name, result in check_suite.get_non_failing_results().items():
         report += (
             f"Check: {name}\n"
             f"Status: {result.status}\n"
