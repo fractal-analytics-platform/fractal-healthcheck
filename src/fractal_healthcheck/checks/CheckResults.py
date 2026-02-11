@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from pydantic import ConfigDict
+import textwrap
 
 
 class CheckResult(BaseModel):
@@ -28,3 +29,11 @@ class CheckResult(BaseModel):
             log_str = self.log
 
         return log_str.strip("\n") + "\n"
+
+    def format_for_report(self, name: str) -> str:
+        return (
+            f"Check: {name}\n"
+            f"Status: {self.status}\n"
+            f"Logs:\n{textwrap.indent(self.full_log, '> ')}\n"
+            "----\n\n"
+        )
