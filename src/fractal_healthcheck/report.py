@@ -27,12 +27,24 @@ class MailSettings(BaseModel):
     instance_name: str
 
 
+class GeneralSettings(BaseModel):
+    max_log_size: int = 20_000
+
+
 def load_email_config(config_file: str) -> MailSettings:
     with open(config_file, "r") as f:
         config = yaml.safe_load(f)
     email_config = config["email-config"]
     mail_settings = MailSettings(**email_config)
     return mail_settings
+
+
+def load_general_config(config_file: str) -> GeneralSettings:
+    with open(config_file, "r") as f:
+        config = yaml.safe_load(f)
+    general_config = config["general-config"]
+    general_settings = GeneralSettings(**general_config)
+    return general_settings
 
 
 class LastMailStatus:
@@ -80,6 +92,7 @@ def prepare_report(
     check_suite: CheckSuite,
     checks_runtime: float,
     instance_name: str | None,
+    general_settings: GeneralSettings,
 ) -> str:
     """
     Format the results in a CheckSuite instance to a string.
@@ -92,7 +105,6 @@ def prepare_report(
     Formatting is minimal. Since a newline at the end of a check output is not ensured,
     one is always added before a check. Then we strip duplicate newlines.
     Indent is added, for readability.
-
     """
 
     # Filtering failing and count them and print a list
@@ -122,9 +134,15 @@ def prepare_report(
 
     report = "# Detailed report\n\n"
     for name, result in check_suite.get_failing_results().items():
-        report += result.format_for_report(name=name)
+        report += result.format_for_report(
+            name=name,
+            max_log_size=general_settings.max_log_size,
+        )
     for name, result in check_suite.get_non_failing_results().items():
-        report += result.format_for_report(name=name)
+        report += result.format_for_report(
+            name=name,
+            max_log_size=general_settings.max_log_size,
+        )
     report = f"{report}End of report\n"
 
     separator = "-" * 80 + "\n\n"
