@@ -1,0 +1,6 @@
+checks:
+
+email-config:
+
+general-config:
+  max_log_size: 100

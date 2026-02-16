@@ -42,8 +42,12 @@ def load_email_config(config_file: str) -> MailSettings:
 def load_general_config(config_file: str) -> GeneralSettings:
     with open(config_file, "r") as f:
         config = yaml.safe_load(f)
-    general_config = config["general-config"]
-    general_settings = GeneralSettings(**general_config)
+    try:
+        general_config = config["general-config"]
+        general_settings = GeneralSettings(**general_config)
+    except Exception as e:
+        logging.warning(f"[load_general_config] Original error: {str(e)}")
+        general_settings = GeneralSettings()
     return general_settings
 
 
