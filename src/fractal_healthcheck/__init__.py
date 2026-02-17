@@ -1,2 +1,2 @@
-__VERSION__ = "0.1.18"
+__VERSION__ = "0.1.19"
 LOGGER_NAME = "fractal-health"
