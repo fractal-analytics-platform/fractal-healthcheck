@@ -32,7 +32,7 @@ class CheckResult(BaseModel):
         return log_str.strip("\n") + "\n"
 
     def format_for_report(self, name: str, max_log_size: int) -> str:
-        log = self.full_log()
+        log = self.full_log
         if len(log) > max_log_size:
             logging.warning(f"{len(log)=} is larger than {max_log_size=}, truncate")
             log = f"[TRUNCATED]\n{log[:max_log_size]}"
