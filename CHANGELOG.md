@@ -1,4 +1,10 @@
+# 0.1.20
+
+* Fix bug introduced in 0.1.19.
+
 # 0.1.19
+
+> WARNING: Do not use this, see 0.1.20.
 
 * Expose `general-config` and `max_log_size` value.
 
