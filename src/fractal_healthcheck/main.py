@@ -8,6 +8,7 @@ from typing import Optional
 
 from fractal_healthcheck import LOGGER_NAME
 from fractal_healthcheck.report import load_email_config
+from fractal_healthcheck.report import load_general_config
 from fractal_healthcheck.report import prepare_report
 from fractal_healthcheck.report import report_to_file
 from fractal_healthcheck.report import report_to_email
@@ -78,6 +79,7 @@ def main(
         checks_suite,
         checks_runtime=checks_runtime,
         instance_name=instance_name,
+        general_settings=load_general_config(config_file),
     )
 
     # Write report to file

@@ -1,3 +1,7 @@
+# 0.1.19
+
+* Expose `general-config` and `max_log_size` value.
+
 # 0.1.18
 
 * Display failed checks first.
