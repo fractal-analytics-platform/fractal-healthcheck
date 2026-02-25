@@ -1,3 +1,9 @@
+# 0.1.21
+
+* Improve disk-usage check.
+* Bump `psutil` to `7.2.*`
+* Bump `pydantic` to `2.12.*`
+
 # 0.1.20
 
 * Fix bug introduced in 0.1.19.
