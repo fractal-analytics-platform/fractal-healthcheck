@@ -164,15 +164,18 @@ def disk_usage(
     """
     Call psutil.disk_usage on provided 'mountpoint'
     """
-    usage_perc = psutil.disk_usage(mountpoint).percent
-    tot_disk = round(((psutil.disk_usage(mountpoint).total / 1000) / 1000) / 1000, 2)
+    disk_usage = psutil.disk_usage(mountpoint)
+    tot_gb = round(disk_usage.total / 1e9, 2)
+    used_gb = round(disk_usage.used / 1e9, 2)
+    perc_used = disk_usage.percent
     try:
         return CheckResult(
             log=(
-                f"The usage of {mountpoint} is {usage_perc}%, while the threshold is "
-                f"{max_perc_usage}%.\nTotal disk memory is {tot_disk} GB"
+                f"The usage of {mountpoint} is {perc_used}% ({used_gb} GB out "
+                f"of {tot_gb} GB), while the warning threshold is "
+                f"{max_perc_usage}%."
             ),
-            success=max_perc_usage > usage_perc,
+            success=perc_used < max_perc_usage,
         )
     except Exception as e:
         return CheckResult(exception=e, success=False)
@@ -185,10 +188,8 @@ def memory_usage(max_memory_usage: int = 75) -> CheckResult:
     try:
         mem_usage = psutil.virtual_memory()
 
-        mem_usage_total = round(
-            ((mem_usage.total / 1000) / 1000) / 1000, 2
-        )  # GigaBytes
-        mem_usage_available = round(((mem_usage.available / 1024) / 1024) / 1024, 2)
+        mem_usage_total = round(mem_usage.total / 1e9, 2)
+        mem_usage_available = round(mem_usage.available / 1e9, 2)
         mem_usage_percent = round(mem_usage.percent, 1)
         log = {
             "Total memory": f"{mem_usage_total} GB",
