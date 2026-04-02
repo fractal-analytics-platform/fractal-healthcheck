@@ -16,7 +16,7 @@ jobs:
     services:
 
       openssh:
-        image: linuxserver/openssh-server@10.2_p1-r0-ls220
+        image: linuxserver/openssh-server:10.2_p1-r0-ls220
         ports: 
           - 2222:2222
         env:
