@@ -6,8 +6,6 @@ on:
   pull_request:
     branches: ["main"]
 
-
-# https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/controlling-permissions-for-github_token#defining-access-for-the-github_token-permissions
 permissions: {}
 
 jobs:
@@ -18,7 +16,7 @@ jobs:
     services:
 
       openssh:
-        image: linuxserver/openssh-server
+        image: linuxserver/openssh-server:10.2_p1-r0-ls220
         ports: 
           - 2222:2222
         env:
@@ -27,7 +25,7 @@ jobs:
           USER_NAME: "user"
 
       mailpit:
-        image: axllent/mailpit
+        image: axllent/mailpit:v1.28
         ports:
           - 1025:1025
           - 8025:8025
@@ -42,11 +40,11 @@ jobs:
 
     steps:
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           persist-credentials: false
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
         with:
           python-version: "3.12"
 
