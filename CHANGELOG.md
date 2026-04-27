@@ -1,3 +1,7 @@
+# 0.1.22
+
+* Add retries to streamlit health check.
+
 # 0.1.21
 
 * Improve disk-usage check.
