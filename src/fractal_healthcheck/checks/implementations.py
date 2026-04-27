@@ -57,7 +57,7 @@ def url_json(url: str) -> CheckResult:
 
 def streamlit_alive(streamlit_app_url: str) -> CheckResult:
     try:
-        http = PoolManager()
+        http = PoolManager(retries=Retry(10))
         if streamlit_app_url.endswith("/"):
             streamlit_app_url = streamlit_app_url[:-1]
         url = f"{streamlit_app_url}/_stcore/health"
