@@ -511,6 +511,7 @@ version = "0.1.22"
 source = { editable = "." }
 dependencies = [
     { name = "click" },
+    { name = "cryptography" },
     { name = "fabric" },
     { name = "paramiko" },
     { name = "psutil" },
@@ -533,6 +534,7 @@ dev = [
 requires-dist = [
     { name = "bumpver", marker = "extra == 'dev'" },
     { name = "click", specifier = ">=8.1.0,<8.2.0" },
+    { name = "cryptography", specifier = ">=48.0.0" },
     { name = "devtools", marker = "extra == 'dev'", specifier = ">=0.12.2" },
     { name = "fabric", specifier = ">=3.2.2,<4.0.0" },
     { name = "paramiko", specifier = ">=4.0.0,<4.1.0" },
