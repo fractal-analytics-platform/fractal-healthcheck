@@ -1,3 +1,7 @@
+# 0.1.23
+
+* Add check of certificate expiration.
+
 # 0.1.22
 
 * Add retries to streamlit health check.

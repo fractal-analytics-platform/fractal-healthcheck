@@ -1,6 +1,7 @@
 import json
 import psutil
 import subprocess
+from datetime import datetime, timezone
 import logging
 import shlex
 from typing import Optional
@@ -488,5 +489,38 @@ def postgresql_db_info(
             success=True,
         )
 
+    except Exception as e:
+        return CheckResult(log="", success=False, exception=e)
+
+
+def certificate_expiration(
+    domain: str,
+    min_days: int = 10,
+) -> CheckResult:
+    """
+    Check that the TLS certificate for `domain` expires in more than
+    `min_days` days.
+    """
+    import ssl
+
+    from cryptography import x509
+    from cryptography.hazmat.backends import default_backend
+
+    try:
+        cert_data = ssl.get_server_certificate((domain, 443))
+        cert = x509.load_pem_x509_certificate(
+            cert_data.encode(),
+            default_backend(),
+        )
+        not_valid_after_utc = cert.not_valid_after_utc
+        now_utc = datetime.now(tz=timezone.utc)
+        days_left = (not_valid_after_utc - now_utc).days
+        logs = (
+            f"Domain: {domain}"
+            f"Current time: {now_utc}\n"
+            f"Not-valid-after: {not_valid_after_utc}\n"
+            f"Remaining days: {days_left} (threshold {min_days})"
+        )
+        return CheckResult(log=logs, success=(days_left > min_days))
     except Exception as e:
         return CheckResult(log="", success=False, exception=e)

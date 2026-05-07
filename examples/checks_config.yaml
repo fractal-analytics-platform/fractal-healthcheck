@@ -47,6 +47,12 @@ checks:
       password: postgres
       #host: /var/run/postgresql/
 
+  - name: "Certificate expiration check"
+    function_name: certificate_expiration
+    kwargs:
+      domain: 'example.org'
+      min_days: 100
+
 
 email-config:
   status_file: "./status.yaml"

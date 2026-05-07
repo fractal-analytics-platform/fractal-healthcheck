@@ -32,6 +32,11 @@ checks:
     function_name: lsof_ssh
     kwargs:
       max_ssh_lines: 100
+  - name: "Certificate expiration"
+    function_name: certificate_expiration
+    kwargs:
+      domain: 'example.org'
+      min_days: 1
 
     
 email-config:

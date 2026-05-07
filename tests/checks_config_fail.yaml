@@ -4,7 +4,13 @@ checks:
     function_name: url_json
     kwargs:
       url: "http://localhost:1234/something/wrong"
-    
+  - name: "Certificate expiration"
+    function_name: certificate_expiration
+    kwargs:
+      domain: 'example.org'
+      min_days: 100000
+
+
 email-config:
   smtp_server: "localhost"
   smpt_server_port: 1025
