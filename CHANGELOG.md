@@ -1,3 +1,7 @@
+# 0.1.24
+
+* Fix logs.
+
 # 0.1.23
 
 * Add check of certificate expiration.

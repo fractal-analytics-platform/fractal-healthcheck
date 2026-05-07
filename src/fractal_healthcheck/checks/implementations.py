@@ -516,7 +516,7 @@ def certificate_expiration(
         now_utc = datetime.now(tz=timezone.utc)
         days_left = (not_valid_after_utc - now_utc).days
         logs = (
-            f"Domain: {domain}"
+            f"Domain: {domain}\n"
             f"Current time: {now_utc}\n"
             f"Not-valid-after: {not_valid_after_utc}\n"
             f"Remaining days: {days_left} (threshold {min_days})"
