@@ -51,7 +51,7 @@ $ pre-commit install
 ## How to make a release
 From the development environment:
 ```
-bumpver update --patch --dry
+uv run bumpver update --patch --dry
 ```
 
 # Contributors and license
