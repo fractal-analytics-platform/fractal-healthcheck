@@ -91,8 +91,8 @@ def test_failing_run(tmp_path: Path, caplog):
 
     with report_file.open("r") as f:
         report = f.read()
-    assert "Total number of checks: 1" in report
-    assert "Number of failed checks: 1" in report
+    assert "Total number of checks: 2" in report
+    assert "Number of failed checks: 2" in report
     assert "Email sent" in caplog.text
     assert _current_num_messages() == initial_num_messages + 1
 
