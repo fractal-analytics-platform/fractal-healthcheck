@@ -42,7 +42,7 @@ def test_successful_run(tmp_path: Path, caplog):
         old_config_file=old_config_file, tmp_path=tmp_path
     )
 
-    runner = CliRunner(mix_stderr=False)
+    runner = CliRunner()
     report_file = tmp_path / "report.txt"
     args = f"{config_file.as_posix()} -o {report_file.as_posix()} -s -l DEBUG"
 
@@ -77,7 +77,7 @@ def test_failing_run(tmp_path: Path, caplog):
         old_config_file=old_config_file, tmp_path=tmp_path
     )
 
-    runner = CliRunner(mix_stderr=False)
+    runner = CliRunner()
     report_file = tmp_path / "report.txt"
     args = f"{config_file.as_posix()} -o {report_file.as_posix()} -s -l DEBUG"
 
