@@ -47,6 +47,7 @@ $ python -m pip install -e .[dev]
 $ pre-commit install
 [...]
 ```
+where `pre-commit` should have been already installed (e.g. through `pipx install pre-commit`).
 
 ## How to make a release
 From the development environment:

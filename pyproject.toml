@@ -10,10 +10,10 @@ readme = "README.md"
 license = {file = "LICENSE"}
 requires-python = ">=3.10"
 dependencies = [
-    "click >= 8.1.0, < 8.2.0",
+    "click >= 8.4.0, < 8.5.0",
     "psutil >= 7.2.0, < 7.3.0",
     "pyyaml >= 6.0.0, <6.1.0",
-    "pydantic[email] >= 2.12.0, < 2.13.0",
+    "pydantic[email] >= 2.13.0, < 2.14.0",
     "urllib3 >= 2.3.0, < 3.0.0",
     "paramiko >= 5.0.0, < 5.1.0",
     "fabric >= 3.2.2, < 4.0.0",
@@ -25,7 +25,6 @@ dev = [
     "bumpver",
     "devtools >= 0.12.2",
     "pytest >= 9.0.0, < 9.1.0",
-    "pre-commit >=2.19",
     "requests >= 2.32.0, < 3.0.0",
 ]
 
