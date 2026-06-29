@@ -1,3 +1,7 @@
+# 0.1.25
+
+* Drop custom `streamlit` check.
+
 # 0.1.24
 
 * Fix logs.
