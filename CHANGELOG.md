@@ -1,7 +1,7 @@
 # 0.1.25
 
 * Drop custom `streamlit` check.
-* Bump dependencies.
+* Bump `click` and `pydantic` dependencies.
 
 # 0.1.24
 
