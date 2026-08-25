@@ -1,4 +1,5 @@
 from pathlib import Path
+
 from fractal_healthcheck.report import load_general_config
 
 

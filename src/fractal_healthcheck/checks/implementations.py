@@ -1,13 +1,16 @@
 import json
-import psutil
-import subprocess
-from datetime import datetime, timezone
 import logging
 import shlex
+import subprocess
+from datetime import datetime
+from datetime import timezone
 from typing import Optional
+
+import psutil
 from fabric.connection import Connection
-from urllib3.util import Retry
 from urllib3 import PoolManager
+from urllib3.util import Retry
+
 from fractal_healthcheck.checks.CheckResults import CheckResult
 
 
@@ -181,7 +184,10 @@ def memory_usage(max_memory_usage: int = 75) -> CheckResult:
             "Percent": f"{mem_usage_percent}%",
         }
         return CheckResult(
-            log=f"The memory usage is {mem_usage_percent}%, while the threshold is {max_memory_usage}%\n{json.dumps(log, indent=2)}",
+            log=(
+                f"The memory usage is {mem_usage_percent}%, while the threshold is "
+                f"{max_memory_usage}%\n{json.dumps(log, indent=2)}"
+            ),
             success=max_memory_usage > mem_usage_percent,
         )
     except Exception as e:
@@ -295,7 +301,10 @@ def ssh_on_server(
         with connection as c:
             res = c.run("whoami")
             return CheckResult(
-                log=f"Connection to {host} as {username} with private_key={private_key_path} result:\n{res.stdout}",
+                log=(
+                    f"Connection to {host} as {username} with "
+                    f"private_key={private_key_path} result:\n{res.stdout}"
+                )
             )
     except Exception as e:
         return CheckResult(

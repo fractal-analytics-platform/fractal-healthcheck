@@ -1,7 +1,8 @@
 import logging
+import textwrap
+
 from pydantic import BaseModel
 from pydantic import ConfigDict
-import textwrap
 
 
 class CheckResult(BaseModel):
@@ -23,7 +24,10 @@ class CheckResult(BaseModel):
         if self.exception is not None:
             # exceptions from subprocess have some useful attributes, try to include them
             try:
-                log_str = f"{self.exception.__class__}: {self.exception.args[0]}, stderr: {self.exception.stderr}"
+                log_str = (
+                    f"{self.exception.__class__}: {self.exception.args[0]}, "
+                    f"stderr: {self.exception.stderr}"
+                )
             except (AttributeError, IndexError):
                 log_str = f"{self.exception.__class__}: {self.exception}"
         else:

@@ -1,3 +1,7 @@
+# 0.1.26 (unreleased)
+
+* More `ruff` formatting.
+
 # 0.1.25
 
 * Drop custom `streamlit` check.
