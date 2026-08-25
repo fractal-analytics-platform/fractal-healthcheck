@@ -224,42 +224,62 @@ def check_mounts(
 
 
 def service_logs(
-    service: str, time_interval: str, target_words: list[str], use_user: bool = False
+    service: str,
+    time_interval: str,
+    target_words: list[str],
+    words_to_skip: list[str] | None = None,
+    use_user: bool = False,
 ) -> CheckResult:
     """
     Grep for target_words in service logs
     """
     parsed_target_words = "|".join(target_words)
-    if use_user:
-        cmd = f'journalctl --user -q -u {service} --since "{time_interval}"'
-    else:
-        cmd = f'journalctl -q -u {service} --since "{time_interval}"'
-    try:
-        logging.info(f"{cmd=}")
+    user_option = "--user" if use_user else ""
+    cmd1 = f'journalctl {user_option} -q -u {service} --since "{time_interval}"'
+    cmd2 = f'grep -E "{parsed_target_words}"'
+    logging.info(f"{cmd1=}")
+    logging.info(f"{cmd2=}")
+    logging.info(f"{words_to_skip=}")
 
+    try:
         res1 = subprocess.run(
-            shlex.split(cmd),
+            shlex.split(cmd1),
             capture_output=True,
             encoding="utf-8",
         )
         logging.info(f"journalctl returncode: {res1.returncode}")
 
-        cmd = f'grep -E "{parsed_target_words}"'
-        logging.info(f"{cmd=}")
         res2 = subprocess.run(
-            shlex.split(cmd),
+            shlex.split(cmd2),
             input=res1.stdout,
             capture_output=True,
             encoding="utf-8",
         )
-        critical_lines = res2.stdout.strip("\n").split("\n")
+        logging.info(f"grep returncode: {res2.returncode}")
+
+        matching_lines = res2.stdout.strip("\n").split("\n")
+        if words_to_skip is not None:
+            matching_lines = [
+                line
+                for line in matching_lines
+                if not any([word in line for word in words_to_skip])
+            ]
         if res2.returncode == 1:
             return CheckResult(
-                log=f"Returncode={res2.returncode} for {cmd=}.", success=True
+                log=f"Returncode={res2.returncode} for {cmd1=}.",
+                success=True,
+            )
+        elif len(matching_lines) == 0:
+            return CheckResult(
+                log=f"No matching lines, after considering {words_to_skip=}.",
+                success=True,
             )
         else:
-            critical_lines_joined = "\n".join(critical_lines)
-            log = f"{target_words=}.\nMatching log lines:\n{critical_lines_joined}"
+            joined_matching_lines = "\n".join(matching_lines)
+            log = (
+                f"{target_words=}.\n{words_to_skip=}.\n"
+                f"Matching log lines:\n{joined_matching_lines}"
+            )
             return CheckResult(log=log, success=False)
     except Exception as e:
         return CheckResult(exception=e, success=False)

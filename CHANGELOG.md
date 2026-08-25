@@ -1,5 +1,6 @@
-# 0.1.26 (unreleased)
+# 0.1.26
 
+* Expose `words_to_skip` for systemd-service logs check.
 * More `ruff` formatting.
 
 # 0.1.25
