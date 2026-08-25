@@ -1,3 +1,7 @@
+# 0.1.27
+
+* Improve logging.
+
 # 0.1.26
 
 * Expose `words_to_skip` for systemd-service logs check.

@@ -51,8 +51,14 @@ def load_general_config(config_file: str) -> GeneralSettings:
         general_config = config["general-config"]
         general_settings = GeneralSettings(**general_config)
     except Exception as e:
-        logging.warning(f"[load_general_config] Original error: {str(e)}")
+        logging.warning(
+            f"[load_general_config] Could not load general config from {config_file}. "
+            f"Original error: {str(e)}"
+        )
         general_settings = GeneralSettings()
+        logging.warning(
+            f"[load_general_config] Use default settings ({general_settings})."
+        )
     return general_settings
 
 
