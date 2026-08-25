@@ -303,7 +303,7 @@ def ssh_on_server(
             return CheckResult(
                 log=(
                     f"Connection to {host} as {username} with "
-                    f"private_key={private_key_path} result:\n{res.stdout}",
+                    f"private_key={private_key_path} result:\n{res.stdout}"
                 )
             )
     except Exception as e:
