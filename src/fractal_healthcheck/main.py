@@ -1,18 +1,19 @@
 #!/usr/bin/env python
 
-import click
 import logging
 import sys
 import time
 from typing import Optional
 
+import click
+
 from fractal_healthcheck import LOGGER_NAME
+from fractal_healthcheck.checks import load_check_suite
 from fractal_healthcheck.report import load_email_config
 from fractal_healthcheck.report import load_general_config
 from fractal_healthcheck.report import prepare_report
-from fractal_healthcheck.report import report_to_file
 from fractal_healthcheck.report import report_to_email
-from fractal_healthcheck.checks import load_check_suite
+from fractal_healthcheck.report import report_to_file
 
 logger = logging.getLogger(LOGGER_NAME)
 

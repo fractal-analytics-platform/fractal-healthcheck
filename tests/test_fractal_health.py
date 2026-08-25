@@ -1,11 +1,12 @@
-from fractal_healthcheck.main import main
-import requests
 import shutil
-from click.testing import CliRunner
 from pathlib import Path
-from fractal_healthcheck.checks.implementations import postgresql_db_info
 
 import pytest
+import requests
+from click.testing import CliRunner
+
+from fractal_healthcheck.checks.implementations import postgresql_db_info
+from fractal_healthcheck.main import main
 
 testspath = Path(__file__).parent
 

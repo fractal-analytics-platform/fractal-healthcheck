@@ -1,12 +1,13 @@
-from typing import Any
-import yaml
-from fractal_healthcheck.checks import implementations
 import logging
-from fractal_healthcheck import LOGGER_NAME
+from typing import Any
+
+import yaml
 from pydantic import BaseModel
 from pydantic import Field
 from pydantic import field_validator
 
+from fractal_healthcheck import LOGGER_NAME
+from fractal_healthcheck.checks import implementations
 from fractal_healthcheck.checks.CheckResults import CheckResult
 
 logger = logging.getLogger(LOGGER_NAME)
@@ -76,9 +77,7 @@ class CheckSuite(BaseModel):
         Return the non-failing results as a dict: {name:check.results}
         """
         return {
-            _check.name: _check.result
-            for _check in self.checks
-            if _check.result.success
+            _check.name: _check.result for _check in self.checks if _check.result.success
         }
 
 

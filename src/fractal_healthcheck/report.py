@@ -1,13 +1,18 @@
-import yaml
 import logging
-from datetime import datetime, timezone, timedelta
 import smtplib
-from email.message import EmailMessage
 import textwrap
-from pydantic import BaseModel, Field, EmailStr
-from fractal_healthcheck import LOGGER_NAME
-import fractal_healthcheck
+from datetime import datetime
+from datetime import timedelta
+from datetime import timezone
+from email.message import EmailMessage
 
+import yaml
+from pydantic import BaseModel
+from pydantic import EmailStr
+from pydantic import Field
+
+import fractal_healthcheck
+from fractal_healthcheck import LOGGER_NAME
 from fractal_healthcheck.checks import CheckSuite
 
 logger = logging.getLogger(LOGGER_NAME)
@@ -100,11 +105,9 @@ def prepare_report(
 ) -> str:
     """
     Format the results in a CheckSuite instance to a string.
-    It takes as argument also the time needed to run the checks.
 
-    Also reports the number of not succeeding checks.
-    Apart from this, for the moment being this does not expect any schema in 'results_dict',
-    it simply wraps string concatenation as "key: str(value)"
+    This does not expect any schema in 'results_dict', but it simply wraps string
+    concatenation as "key: str(value)"
 
     Formatting is minimal. Since a newline at the end of a check output is not ensured,
     one is always added before a check. Then we strip duplicate newlines.
@@ -205,37 +208,43 @@ def report_to_email(
                 datetime.now(tz=timezone.utc) - last_mail_info.last_email_timestamp
             )
             logger.info(
-                f"[report_to_email] Last report email sent on {last_mail_info.last_email_timestamp} ({since_last} ago)"
+                f"[report_to_email] Last report email sent on "
+                f"{last_mail_info.last_email_timestamp} ({since_last} ago)"
             )
 
         if any_failing:
             if since_last > timedelta(hours=mail_settings.grace_time_triggering_hours):
                 logger.info(
-                    "[report_to_email] Will send email, reason: triggering, and enough time elapsed"
+                    "[report_to_email] Will send email, reason: triggering, "
+                    "and enough time elapsed"
                 )
                 mail_reason = "WARNING"
             else:
                 mail_reason = None
                 logger.info(
-                    "[report_to_email] Will not send, reason: triggering, but not enough time elapsed"
+                    "[report_to_email] Will not send, reason: triggering, "
+                    "but not enough time elapsed"
                 )
         else:
             if since_last > timedelta(
                 hours=mail_settings.grace_time_not_triggering_hours
             ):
                 logger.info(
-                    "[report_to_email] Will send email, reason: not failing, but enough time elapsed"
+                    "[report_to_email] Will send email, reason: not failing, "
+                    "but enough time elapsed"
                 )
                 mail_reason = "ALL OK"
             else:
                 mail_reason = None
                 logger.info(
-                    "[report_to_email] Will not send, reason: not failing, and not enough time elapsed"
+                    "[report_to_email] Will not send, reason: not failing, "
+                    "and not enough time elapsed"
                 )
 
     except Exception as e:
         logger.info(
-            f"[report_to_email] Cannot read status_file='{status_file}', original error: {e}."
+            f"[report_to_email] Cannot read status_file='{status_file}', "
+            f"original error: {e}."
         )
         last_mail_info = LastMailStatus()
         mail_reason = "First report"
