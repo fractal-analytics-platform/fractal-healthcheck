@@ -268,9 +268,9 @@ def report_to_email(
     msg["To"] = ", ".join(mail_settings.recipients)
     msg["Subject"] = f"[Fractal, {mail_settings.instance_name}] {mail_reason}"
     msg.set_content(report)
-    # Add unique reference header, to avoid different messages getting grouped in the same
+    # Add unique References header, to avoid different messages getting grouped in the same
     # conversation - see e.g. https://support.google.com/mail/answer/5900
-    msg.add_header("reference", str(uuid.uuid4()))
+    msg.add_header("References", str(uuid.uuid4()))
 
     # (3/3) Send email and update timestamp
     with smtplib.SMTP(
