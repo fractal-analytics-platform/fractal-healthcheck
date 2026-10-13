@@ -266,7 +266,7 @@ def report_to_email(
     msg = EmailMessage()
     msg["From"] = mail_settings.sender
     msg["To"] = ", ".join(mail_settings.recipients)
-    msg["Subject"] = f"{mail_settings.instance_name} - {mail_reason}"
+    msg["Subject"] = f"[Fractal, {mail_settings.instance_name}] {mail_reason}"
     msg.set_content(report)
 
     # Add unique References header, to avoid different messages getting grouped in the same
