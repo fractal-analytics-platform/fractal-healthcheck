@@ -1,6 +1,7 @@
 import logging
 import smtplib
 import textwrap
+import uuid
 from datetime import datetime
 from datetime import timedelta
 from datetime import timezone
@@ -267,6 +268,12 @@ def report_to_email(
     msg["To"] = ", ".join(mail_settings.recipients)
     msg["Subject"] = f"[Fractal, {mail_settings.instance_name}] {mail_reason}"
     msg.set_content(report)
+
+    # Add unique References header, to avoid different messages getting grouped in the same
+    # conversation - see e.g. https://support.google.com/mail/answer/5900
+    references_header = f"<{uuid.uuid4()}>"
+    logger.info(f"[report_to_email] {references_header=}")
+    msg.add_header("References", references_header)
 
     # (3/3) Send email and update timestamp
     with smtplib.SMTP(

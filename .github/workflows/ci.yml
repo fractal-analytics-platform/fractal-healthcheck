@@ -11,7 +11,12 @@ permissions: {}
 jobs:
 
   examples:
-    runs-on: ubuntu-latest
+    name: "Examples - Python${{ matrix.python-version }}"
+    runs-on: ubuntu-26.04
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13", "3.14", "3.15"]
+
 
     services:
 
@@ -46,7 +51,7 @@ jobs:
 
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97
         with:
-          python-version: "3.12"
+          python-version: ${{ matrix.python-version }}
 
       - run: pip install -e .[dev]
 
