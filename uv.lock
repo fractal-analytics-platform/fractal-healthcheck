@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.10"
 resolution-markers = [
     "python_full_version >= '3.12'",
@@ -631,7 +631,7 @@ requires-dist = [
     { name = "paramiko", specifier = ">=5.0.0,<5.1.0" },
     { name = "psutil", specifier = ">=7.2.0,<7.3.0" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2.9,<4.0.0" },
-    { name = "pydantic", extras = ["email"], specifier = ">=2.13.0,<2.14.0" },
+    { name = "pydantic", extras = ["email"], specifier = ">=2.13.0,<2.15.0" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=9.0.0,<9.1.0" },
     { name = "pyyaml", specifier = ">=6.0.0,<6.1.0" },
     { name = "requests", marker = "extra == 'dev'", specifier = ">=2.32.0,<3.0.0" },
