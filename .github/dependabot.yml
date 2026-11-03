@@ -1,13 +1,35 @@
 version: 2
 updates:
-  - package-ecosystem: "github-actions"
-    directory: "/.github/workflows"
+  - package-ecosystem: github-actions
+    directory: /.github/workflows
     schedule:
       interval: "quarterly"
     cooldown:
       default-days: 7
     groups:
-      gha-updates:
+      version-updates:
         applies-to: version-updates
+        patterns:
+          - '*'
+      security-updates:
+        applies-to: security-updates
+        patterns:
+          - '*'
+  - package-ecosystem: "uv"
+    versioning-strategy: "lockfile-only"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    cooldown:
+      default-days: 7
+    exclude-paths:
+      - "tests"
+    groups:
+      version-updates:
+        applies-to: version-updates
+        patterns:
+          - '*'
+      security-updates:
+        applies-to: security-updates
         patterns:
           - '*'
