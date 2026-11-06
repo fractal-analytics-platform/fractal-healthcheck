@@ -1,3 +1,7 @@
+# 0.1.29
+
+* Deprecate Python 3.10.
+
 # 0.1.28
 
 * Add `References: <some-uuid4>` email header, to avoid spurious message grouping (e.g. of alerts coming from different Fractal instances) in email clients.
